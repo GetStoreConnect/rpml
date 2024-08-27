@@ -1,0 +1,17 @@
+{
+  "name": "tpml-parser",
+  "version": "1.0.0",
+  "description": "A TPML parser for custom templating language",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Your Name",
+  "license": "MIT",
+  "keywords": [],
+  "devDependencies": {
+    "chai": "^5.1.1",
+    "mocha": "^10.7.3"
+  }
+}
