@@ -141,17 +141,15 @@ describe('TPML Parser', () => {
     ]);
   });
 
-  // Escaped Commas
-  it('should handle escaped commas in splittable attributes', () => {
-    const input = "{table row='Row1\\,with comma,Row2'}";
+  // Escaped Quotes
+  it('should handle escaped quote inside attributes', () => {
+    const input = `{text "This is a string with an escaped quote: \"quote\" inside"}`;
     const output = parseTPML(input);
 
     expect(output).to.deep.equal([
       {
-        name: 'table',
-        attributes: {
-          rows: ['Row1,with comma', 'Row2']
-        }
+        name: 'text',
+        value: 'This is a string with an escaped quote: "quote" inside'
       }
     ]);
   });
@@ -353,6 +351,98 @@ describe('TPML Parser', () => {
         { name: 'line', value: 'iii) Cancellation will incur a 10% fee' }
       ]);
     });
+
+    it('should parse tags with empty attributes correctly', () => {
+      const input = "{image src='' width=100}";
+      const output = parseTPML(input);
+
+      expect(output).to.deep.equal([
+        {
+          name: 'image',
+          attributes: {
+            src: '',
+            width: 100,
+            dither: "threshold"
+          }
+        }
+      ]);
+    });
+
+    it('should handle multiple escaped characters within a value', () => {
+      const input = "{text This is \\{escaped\\}, and this is \\[escaped\\]}";
+      const output = parseTPML(input);
+
+      expect(output).to.deep.equal([
+        {
+          name: 'text',
+          value: 'This is {escaped}, and this is [escaped]'
+        }
+      ]);
+    });
+
+    it('should handle mixed case keywords correctly', () => {
+      const input = "{DoCuMeNt WoRd-WrAp=true}";
+      const output = parseTPML(input);
+
+      expect(output).to.deep.equal([
+        {
+          name: 'document',
+          attributes: {
+            wordWrap: true
+          }
+        }
+      ]);
+    });
+
+    it('should handle whitespace around commas in splittable attributes', () => {
+      const input = "{table align='left , right'}";
+      const output = parseTPML(input);
+
+      expect(output).to.deep.equal([
+        {
+          name: 'table',
+          attributes: {
+            align: ['left', 'right']
+          }
+        }
+      ]);
+    });
+
+    it('should handle unusual but valid attribute values', () => {
+      const input = "{rule width=0 line='solid' style='single'}";
+      const output = parseTPML(input);
+
+      expect(output).to.deep.equal([
+        {
+          name: 'rule',
+          attributes: {
+            width: 0,
+            line: 'solid',
+            style: 'single'
+          }
+        }
+      ]);
+    });
+
+    it('should handle adjacent tags on separate lines correctly', () => {
+      const input = `
+{bold}
+{italic}
+Some text
+{endItalic}
+{endBold}
+`;
+      const output = parseTPML(input);
+
+      expect(output).to.deep.equal([
+        { name: 'bold' },
+        { name: 'italic' },
+        { name: 'line', value: 'Some text' },
+        { name: 'italic', off: true },
+        { name: 'bold', off: true }
+      ]);
+    });
+
 
     it('should correctly parse the entire TPML input', () => {
       const input = `

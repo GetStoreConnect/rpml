@@ -60,7 +60,7 @@ const tpmlConfig = {
       type: { type: "keyword", options: ["upca", "ean13", "ean8", "code39", "code128"] },
       data: { type: "string" },
       height: { type: "number", default: 50},
-      position: { type: "keyword", options: ["none", "above", "below", "both"] },
+      position: { type: "keyword", options: ["none", "above", "below", "both"], default: "none" },
     }
   },
   qrcode: {
