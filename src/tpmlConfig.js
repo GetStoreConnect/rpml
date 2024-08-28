@@ -14,6 +14,7 @@ const tpmlConfig = {
       width: { type: "number" },
     },},
   left: {},
+  right: {},
   line: {},
   rule: {
     attributes: {

@@ -1,7 +1,7 @@
 {
-  "name": "tpml-parser",
+  "name": "tpml-utils",
   "version": "1.0.0",
-  "description": "A TPML parser for custom templating language",
+  "description": "Utilities for Thermal Printer Markup Language (TPML)",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -13,5 +13,8 @@
   "devDependencies": {
     "chai": "^5.1.1",
     "mocha": "^10.7.3"
+  },
+  "dependencies": {
+    "canvas": "^2.11.2"
   }
 }
