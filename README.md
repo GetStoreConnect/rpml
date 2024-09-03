@@ -77,7 +77,7 @@ The `text` tag is used to insert a line of text into the document. The content o
 **Example:**
 
 ```tpml
-{text This is a sample text}
+{text This is some sample text}
 ```
 
 **Description:**

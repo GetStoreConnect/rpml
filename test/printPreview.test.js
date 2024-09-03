@@ -140,6 +140,8 @@ Layby Terms & Conditions
     font-size: 14px;
     line-height: 1.3em;
     background-color: transparent;
+    margin: 0;
+    padding: 0;
   }
 
   article {
@@ -211,63 +213,6 @@ Layby Terms & Conditions
   .right {
     text-align: right;
   }
-
-  .height1 { transform: scaleY(1); line-height: 100%; display: inline-block;}
-  .height2 { transform: scaleY(2); line-height: 200%; display: inline-block;}
-  .height3 { transform: scaleY(3); line-height: 300%; display: inline-block;}
-  .height4 { transform: scaleY(4); line-height: 400%; display: inline-block;}
-  .height5 { transform: scaleY(5); line-height: 500%; display: inline-block;}
-  .height6 { transform: scaleY(6); line-height: 600%; display: inline-block;}
-
-  .width1 { transform: scaleX(1); display: inline-block;}
-  .width2 { transform: scaleX(2); display: inline-block;}
-  .width3 { transform: scaleX(3); display: inline-block;}
-  .width4 { transform: scaleX(4); display: inline-block;}
-  .width5 { transform: scaleX(5); display: inline-block;}
-  .width6 { transform: scaleX(6); display: inline-block;}
-
-  .height1.width1 { transform: scale(1, 1); line-height: 100%; display: inline-block; }
-  .height1.width2 { transform: scale(2, 1); line-height: 100%; display: inline-block; }
-  .height1.width3 { transform: scale(3, 1); line-height: 100%; display: inline-block; }
-  .height1.width4 { transform: scale(4, 1); line-height: 100%; display: inline-block; }
-  .height1.width5 { transform: scale(5, 1); line-height: 100%; display: inline-block; }
-  .height1.width6 { transform: scale(6, 1); line-height: 100%; display: inline-block; }
-
-  .height2.width1 { transform: scale(1, 2); line-height: 200%; display: inline-block; }
-  .height2.width2 { transform: scale(2, 2); line-height: 200%; display: inline-block; }
-  .height2.width3 { transform: scale(3, 2); line-height: 200%; display: inline-block; }
-  .height2.width4 { transform: scale(4, 2); line-height: 200%; display: inline-block; }
-  .height2.width5 { transform: scale(5, 2); line-height: 200%; display: inline-block; }
-  .height2.width6 { transform: scale(6, 2); line-height: 200%; display: inline-block; }
-
-  .height3.width1 { transform: scale(1, 3); line-height: 300%; display: inline-block; }
-  .height3.width2 { transform: scale(2, 3); line-height: 300%; display: inline-block; }
-  .height3.width3 { transform: scale(3, 3); line-height: 300%; display: inline-block; }
-  .height3.width4 { transform: scale(4, 3); line-height: 300%; display: inline-block; }
-  .height3.width5 { transform: scale(5, 3); line-height: 300%; display: inline-block; }
-  .height3.width6 { transform: scale(6, 3); line-height: 300%; display: inline-block; }
-
-  .height4.width1 { transform: scale(1, 4); line-height: 400%; display: inline-block; }
-  .height4.width2 { transform: scale(2, 4); line-height: 400%; display: inline-block; }
-  .height4.width3 { transform: scale(3, 4); line-height: 400%; display: inline-block; }
-  .height4.width4 { transform: scale(4, 4); line-height: 400%; display: inline-block; }
-  .height4.width5 { transform: scale(5, 4); line-height: 400%; display: inline-block; }
-  .height4.width6 { transform: scale(6, 4); line-height: 400%; display: inline-block; }
-
-  .height5.width1 { transform: scale(1, 5); line-height: 500%; display: inline-block; }
-  .height5.width2 { transform: scale(2, 5); line-height: 500%; display: inline-block; }
-  .height5.width3 { transform: scale(3, 5); line-height: 500%; display: inline-block; }
-  .height5.width4 { transform: scale(4, 5); line-height: 500%; display: inline-block; }
-  .height5.width5 { transform: scale(5, 5); line-height: 500%; display: inline-block; }
-  .height5.width6 { transform: scale(6, 5); line-height: 500%; display: inline-block; }
-
-  .height6.width1 { transform: scale(1, 6); line-height: 600%; display: inline-block; }
-  .height6.width2 { transform: scale(2, 6); line-height: 600%; display: inline-block; }
-  .height6.width3 { transform: scale(3, 6); line-height: 600%; display: inline-block; }
-  .height6.width4 { transform: scale(4, 6); line-height: 600%; display: inline-block; }
-  .height6.width5 { transform: scale(5, 6); line-height: 600%; display: inline-block; }
-  .height6.width6 { transform: scale(6, 6); line-height: 600%; display: inline-block; }
-
 
   .img {
     width: 100%;
