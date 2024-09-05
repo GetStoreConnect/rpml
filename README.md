@@ -84,20 +84,20 @@ The `text` tag is used to insert a line of text into the document. The content o
 - The `text` tag directly inserts the provided string into the document as a line of text.
 - If the string contains braces, they should be escaped (e.g. `\{`).
 
-### **`height`, `width`**
+### **`size`**
 
-These set the height or width of text. The setting remains in effect until changed.
+This sets the text size. This only applies to normal line text. It does not apply to tables or images etc. The setting remains in effect until changed or turned off by a tag that does not support size.
 
 **Parameter:**
-- A numeric value representing the height or width. Options are: 1 - 6. Defaults to 1.
+- A numeric value representing the size. Options are: 1 - 6. Defaults to 1. Size 2 is double the font size of size 1, and so on.
 
 **Example:**
 
 ```tpml
-{height 3}
-I am height 3!
-{width 4}
-I am width 4! (and still height 3)
+{size 3}
+I am 3 times as big!
+{size 1}
+I am normal size again.
 ```
 
 ### **`image`**

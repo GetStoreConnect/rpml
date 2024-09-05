@@ -210,8 +210,7 @@ class TPMLDocumentBuilder {
   defaultStyles() {
     return {
       alignment: "left",
-      width: 1,
-      height: 1,
+      size: 1,
       bold: false,
       italic: false,
       underline: false,
@@ -229,6 +228,10 @@ class TPMLDocumentBuilder {
     background-color: transparent;
     margin: 0;
     padding: 0;
+
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-all;
   }
 
   article {
@@ -269,6 +272,34 @@ class TPMLDocumentBuilder {
 
   .small {
     font-size: 80%;
+  }
+
+  .size-1, .size-2, .size-3, .size-4, .size-5, .size-6 {
+    line-height: 100%;
+  }
+
+  .size-1 {
+    font-size: 100%;
+  }
+
+  .size-2 {
+    font-size: 200%;
+  }
+
+  .size-3 {
+    font-size: 300%;
+  }
+
+  .size-4 {
+    font-size: 400%;
+  }
+
+  .size-5 {
+    font-size: 500%;
+  }
+
+  .size-6 {
+    font-size: 600%;
   }
 
   .bold {
@@ -358,13 +389,8 @@ class TPMLDocumentBuilder {
       case "center":
         this.styles.alignment = command.name;
         break;
-      case "width":
-        // not implemented as yet - not sure what the css should be
-        this.styles.width = command.value;
-        break;
-      case "height":
-        // not implemented as yet - not sure what the css should be
-        this.styles.height = command.value;
+      case "size":
+        this.styles.size = command.value;
         break;
       case "bold":
         this.styles.bold = command.off === true ? false : true;
@@ -381,7 +407,12 @@ class TPMLDocumentBuilder {
       case "small":
         this.styles.small = command.off === true ? false : true;
         break;
+      case "line":
+      case "text":
+        this.addLine(command, { ...this.styles });
+        break;
       default:
+        this.styles.size = 1;
         this.addLine(command, { ...this.styles });
         break;
     }
@@ -425,6 +456,10 @@ class TPMLDocumentLine {
     if (this.styles.invert)
       this.contentClasses.push("invert");
 
+    if (this.styles.size && (this.command.name == "line" || this.command.name == "text")) {
+      this.blockClasses.push("size-" + this.styles.size);
+    }
+
     this.blockClasses.push(this.styles.alignment);
   }
 
@@ -454,13 +489,14 @@ class TPMLDocumentLine {
         html += `<span class="${contentClasses}">${value}</span>`;
         break;
       case "rule":
+        const charCount = this.builder.chars;
         if (this.command.attributes.line == "dashed") {
           let char = this.command.attributes.style == "double" ? "=" : "-";
-          html += `<div class="${blockClasses} rule rule-dashed"><span class="${contentClasses}">${char.repeat(this.command.attributes.width || this.builder.chars)}</span></div>`;
+          html += `<div class="${blockClasses} rule rule-dashed"><span class="${contentClasses}">${char.repeat(this.command.attributes.width || charCount)}</span></div>`;
         } else {
           let width = "100%";
           if (this.command.attributes.width) {
-            width = `${(this.command.attributes.width / this.builder.chars) * 100.0}%`;
+            width = `${(this.command.attributes.width / charCount) * 100.0}%`;
           }
           let cls = ` ${this.command.attributes.style == "double" ? "border-bottom: 1px solid black; height: 3px;" : ""}`;
           html += `<div class="${blockClasses} rule" style="position:relative;"><div class="rule-solid${cls}" style="width: ${width};"></div></div>`;

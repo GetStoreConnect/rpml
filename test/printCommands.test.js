@@ -80,13 +80,13 @@ describe('Print Commands', () => {
   });
 
   // Height Tag
-  it('should parse height tag with numeric parameter', () => {
-    const tpml = "{height 3}";
+  it('should parse size tag with numeric parameter', () => {
+    const tpml = "{size 3}";
     const output = printCommands(tpml);
 
     expect(output).to.deep.equal([
       {
-        name: 'height',
+        name: 'size',
         value: 3
       }
     ]);

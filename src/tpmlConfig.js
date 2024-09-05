@@ -50,10 +50,7 @@ const tpmlConfig = {
   small: {
     toggle: true,
   },
-  height: {
-    param: { type: "number", options: [1, 2, 3, 4, 5, 6], default: 1 },
-  },
-  width: {
+  size: {
     param: { type: "number", options: [1, 2, 3, 4, 5, 6], default: 1 },
   },
   barcode: {
