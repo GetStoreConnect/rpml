@@ -1,9 +1,9 @@
-import tpmlConfig from './tpmlConfig.js';
+import rpmlConfig from './rpmlConfig.js';
 import { createCanvas } from 'canvas';
 
-export class TPMLDocument {
-  constructor(tpml, chars) {
-    this.tpml = tpml;
+export class RPMLDocument {
+  constructor(markup, chars) {
+    this.markup = markup;
     this.commands;
     this.html;
     this.elemWidth;
@@ -12,17 +12,17 @@ export class TPMLDocument {
   }
 
   toCommands() {
-    return this.commands ||= new TPMLParser(this.tpml).parse();
+    return this.commands ||= new RPMLParser(this.markup).parse();
   }
 
   toHtml() {
-    return this.html ||= new TPMLDocumentBuilder(this.toCommands(), this.chars).build();
+    return this.html ||= new RPMLDocumentBuilder(this.toCommands(), this.chars).build();
   }
 }
 
-class TPMLParser {
-  constructor(tpml) {
-    this.tpml = tpml;
+class RPMLParser {
+  constructor(markup) {
+    this.markup = markup;
   }
 
   parse() {
@@ -30,13 +30,13 @@ class TPMLParser {
 
     let regex = /(?:\s*(?<!\\)(?:\\\\)*{\s*(?<key>\w+)[\s\n]*(?<attrs>(?:[^}]|\\})*)(?<!\\)(?:\\\\)*})|(?<comment>\s*{#[^}]+\s*})|(?<line>[^\n]+)/gmi;
 
-    let matches = [...this.tpml.matchAll(regex)];
+    let matches = [...this.markup.matchAll(regex)];
 
     for (const match of matches) {
       if (match.groups.comment)
         continue;
 
-      let command = this.parseCommand(match, tpmlConfig);
+      let command = this.parseCommand(match, rpmlConfig);
       if (command)
         commands.push(command);
     }
@@ -194,7 +194,7 @@ class TPMLParser {
   }
 }
 
-class TPMLDocumentBuilder {
+class RPMLDocumentBuilder {
   constructor(commands, chars) {
     this.commands = commands;
     this.lines = [];
@@ -419,7 +419,7 @@ class TPMLDocumentBuilder {
   }
 
   addLine(command, styles) {
-    this.lines.push(new TPMLDocumentLine(command, styles, this, this.lines[this.lines.length - 1]));
+    this.lines.push(new RPMLDocumentLine(command, styles, this, this.lines[this.lines.length - 1]));
   }
 
   calculateWidth(chars, fontFamily, fontSize) {
@@ -432,7 +432,7 @@ class TPMLDocumentBuilder {
   }
 }
 
-class TPMLDocumentLine {
+class RPMLDocumentLine {
   constructor(command, styles, builder, precedingLine) {
     this.command = command;
     this.styles = styles;

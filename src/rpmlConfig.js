@@ -1,4 +1,4 @@
-const tpmlConfig = {
+const rpmlConfig = {
   document: {
     attributes: {
       wordWrap: { type: "boolean", default: false },
@@ -71,4 +71,4 @@ const tpmlConfig = {
   }
 }
 
-export default tpmlConfig;
+export default rpmlConfig;

@@ -1,7 +1,7 @@
 {
-  "name": "tpml-utils",
+  "name": "rpml-utils",
   "version": "1.0.0",
-  "description": "Utilities for Thermal Printer Markup Language (TPML)",
+  "description": "Utilities for Receipt Printer Markup Language (RPML)",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

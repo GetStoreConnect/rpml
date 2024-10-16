@@ -1,11 +1,11 @@
-import { TPMLDocument } from "./tpmlDocument.js";
+import { RPMLDocument } from "./rpmlDocument.js";
 
-export function printCommands(tpml, chars) {
-  return new TPMLDocument(tpml, chars).toCommands();
+export function printCommands(markup, chars) {
+  return new RPMLDocument(markup, chars).toCommands();
 }
 
-export function printPreview(tpml, chars) {
-  const html = new TPMLDocument(tpml, chars).toHtml();
+export function printPreview(markup, chars) {
+  const html = new RPMLDocument(markup, chars).toHtml();
 
   return html;
 }

@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { printPreview } from '../src/index.js';
 
 describe('Print Preview', () => {
-  it('should correctly parse the entire TPML tpml', () => {
-    const tpml = `
+  it('should correctly parse the entire RPML markup', () => {
+    const markup = `
 {document
 word-wrap=true
 }
@@ -133,7 +133,7 @@ Layby Terms & Conditions
 3) Cancellations incur 10% fee
 `;
 
-    const output = printPreview(tpml);
+    const output = printPreview(markup);
     const expectedOutput = `<html><head><style>
   body {
     font-family: monospace;

@@ -1,8 +1,8 @@
-# **Thermal Printer Markup Language (TPML)**
+# **Receipt Printer Markup Language (RPML)**
 
 ## **Overview**
 
-Thermal Printer Markup Language (TPML) is a lightweight markup language designed for formatting and generating thermal print documents, eg receipts. TPML provides a set of tags and attributes to control text alignment, styling, and the inclusion of elements like images, barcodes, and tables.
+Receipt Printer Markup Language (RPML) is a lightweight markup language designed for formatting and generating receipt print documents, eg receipts. RPML provides a set of tags and attributes to control text alignment, styling, and the inclusion of elements like images, barcodes, and tables.
 
 ## **Basic Syntax**
 
@@ -23,7 +23,7 @@ Defines the start of a document with optional configuration attributes. This tag
 
 **Example:**
 
-```tpml
+```rpml
 {document word-wrap=true}
 ```
 
@@ -33,7 +33,7 @@ Inserts a blank line.
 
 **Examples:**
 
-```tpml
+```rpml
 This has a blank line after it
 {line}
 This has a blank line before it
@@ -45,7 +45,7 @@ These tags toggle text styles on or off. To turn off the style, use the correspo
 
 **Examples:**
 
-```tpml
+```rpml
 {bold}
 This text is bold
 {endBold}
@@ -61,7 +61,7 @@ These align the subsequent content to the left, center, or right. The alignment 
 
 **Examples:**
 
-```tpml
+```rpml
 {center}
 CENTERED TEXT
 {left}
@@ -76,7 +76,7 @@ The `text` tag is used to insert a line of text into the document. The content o
 
 **Example:**
 
-```tpml
+```rpml
 {text This is some sample text}
 ```
 
@@ -93,7 +93,7 @@ This sets the text size. This only applies to normal line text. It does not appl
 
 **Example:**
 
-```tpml
+```rpml
 {size 3}
 I am 3 times as big!
 {size 1}
@@ -116,7 +116,7 @@ Inserts an image into the document.
 
 **Example:**
 
-```tpml
+```rpml
 {image
   src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA..."
   width=320
@@ -146,7 +146,7 @@ Generates a barcode in the document.
 
 **Example:**
 
-```tpml
+```rpml
 {barcode type='upca' data='012345678905' height=100 position='below'}
 ```
 
@@ -170,7 +170,7 @@ Generates a QR code in the document.
 
 **Example:**
 
-```tpml
+```rpml
 {qrcode data='https://example.com' level='m' model='2' size=7}
 ```
 
@@ -192,13 +192,13 @@ Creates a table with specified rows and columns, as well as other formatting opt
 **Examples:**
 
 The simplest table definition:
-```tpml
+```rpml
 {table
   row=["Total", "$89.99"]
 }
 ```
 A fuller table definition:
-```tpml
+```rpml
 {table
   cols=3
   width=[8,5,*]
@@ -225,7 +225,7 @@ Creates a horizontal rule with optional style and width.
 
 **Example:**
 
-```tpml
+```rpml
 {rule width=2 line='dashed' style='single'}
 ```
 
@@ -235,7 +235,7 @@ Comments can be added using `{# ... }`. Anything inside a comment block will be 
 
 **Example:**
 
-```tpml
+```rpml
 {# This is a comment and will be ignored }
 ```
 
@@ -245,15 +245,15 @@ You can escape characters using a backslash `\`.
 
 **Examples:**
 
-```tpml
+```rpml
 {text These braces are \{escaped\}}
 ```
 
 ## **Complete Example**
 
-Below is a complete example of a TPML document:
+Below is a complete example of a RPML document:
 
-```tpml
+```rpml
 {document word-wrap=true}
 
 {center}

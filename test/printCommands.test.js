@@ -3,8 +3,8 @@ import { printCommands } from '../src/index.js';
 
 describe('Print Commands', () => {
   it('should parse basic commands', () => {
-    const tpml = "{document word-wrap=true}";
-    const output = printCommands(tpml);
+    const markup = "{document word-wrap=true}";
+    const output = printCommands(markup);
 
     expect(output).to.deep.equal([
       {
@@ -17,24 +17,24 @@ describe('Print Commands', () => {
   });
 
   it('should ignore comments', () => {
-    const tpml = "{# this is a comment }\n{document word-wrap=true}";
-    const output = printCommands(tpml);
+    const markup = "{# this is a comment }\n{document word-wrap=true}";
+    const output = printCommands(markup);
 
     expect(output.length).to.equal(1);
     expect(output[0].name).to.equal('document');
   });
 
   it('should handle unknown commands', () => {
-    const tpml = "{unknownCommand}";
-    const output = printCommands(tpml);
+    const markup = "{unknownCommand}";
+    const output = printCommands(markup);
 
     expect(output[0].name).to.equal('unknown');
   });
 
   // Image Tag
   it('should parse image tag with multiple attributes', () => {
-    const tpml = "{image src='image.png' width=200 height=100 dither='bayer'}";
-    const output = printCommands(tpml);
+    const markup = "{image src='image.png' width=200 height=100 dither='bayer'}";
+    const output = printCommands(markup);
 
     expect(output).to.deep.equal([
       {
@@ -51,8 +51,8 @@ describe('Print Commands', () => {
 
   // Rule Tag
   it('should parse rule tag with keyword options', () => {
-    const tpml = "{rule width=2 line='solid' style='double'}";
-    const output = printCommands(tpml);
+    const markup = "{rule width=2 line='solid' style='double'}";
+    const output = printCommands(markup);
 
     expect(output).to.deep.equal([
       {
@@ -68,8 +68,8 @@ describe('Print Commands', () => {
 
   // Text Tag
   it('should parse text tag with string parameter', () => {
-    const tpml = "{text This is a sample text}";
-    const output = printCommands(tpml);
+    const markup = "{text This is a sample text}";
+    const output = printCommands(markup);
 
     expect(output).to.deep.equal([
       {
@@ -81,8 +81,8 @@ describe('Print Commands', () => {
 
   // Height Tag
   it('should parse size tag with numeric parameter', () => {
-    const tpml = "{size 3}";
-    const output = printCommands(tpml);
+    const markup = "{size 3}";
+    const output = printCommands(markup);
 
     expect(output).to.deep.equal([
       {
@@ -94,8 +94,8 @@ describe('Print Commands', () => {
 
   // Barcode Tag
   it('should parse barcode tag with multiple attributes', () => {
-    const tpml = "{barcode type='upca' data='012345678905' height=75 position='below'}";
-    const output = printCommands(tpml);
+    const markup = "{barcode type='upca' data='012345678905' height=75 position='below'}";
+    const output = printCommands(markup);
 
     expect(output).to.deep.equal([
       {
@@ -112,8 +112,8 @@ describe('Print Commands', () => {
 
   // QRCode Tag
   it('should parse qrcode tag with multiple attributes', () => {
-    const tpml = "{qrcode data='https://example.com' level='m' model='2' size=7}";
-    const output = printCommands(tpml);
+    const markup = "{qrcode data='https://example.com' level='m' model='2' size=7}";
+    const output = printCommands(markup);
 
     expect(output).to.deep.equal([
       {
@@ -130,8 +130,8 @@ describe('Print Commands', () => {
 
   // Escaped Braces
   it('should handle escaped braces inside tags', () => {
-    const tpml = "{text This is \\{escaped\\} text}";
-    const output = printCommands(tpml);
+    const markup = "{text This is \\{escaped\\} text}";
+    const output = printCommands(markup);
 
     expect(output).to.deep.equal([
       {
@@ -143,8 +143,8 @@ describe('Print Commands', () => {
 
   // Escaped Quotes
   it('should handle escaped quote inside attributes', () => {
-    const tpml = `{text "This is a string with an escaped quote: \"quote\" inside"}`;
-    const output = printCommands(tpml);
+    const markup = `{text "This is a string with an escaped quote: \"quote\" inside"}`;
+    const output = printCommands(markup);
 
     expect(output).to.deep.equal([
       {
@@ -156,8 +156,8 @@ describe('Print Commands', () => {
 
   // Unknown Command
   it('should handle unknown commands gracefully', () => {
-    const tpml = "{unknownCommand someValue}";
-    const output = printCommands(tpml);
+    const markup = "{unknownCommand someValue}";
+    const output = printCommands(markup);
 
     expect(output).to.deep.equal([
       {
@@ -170,10 +170,10 @@ describe('Print Commands', () => {
 
     // Document Tag
     it('should parse document tag with boolean attribute', () => {
-      const tpml = `{document
+      const markup = `{document
         word-wrap=true
       }`;
-      const output = printCommands(tpml);
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         {
@@ -187,29 +187,29 @@ describe('Print Commands', () => {
 
     // Comment Handling
     it('should ignore comments in the template', () => {
-      const tpml = `{# this is a comment }`;
-      const output = printCommands(tpml);
+      const markup = `{# this is a comment }`;
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([]);
     });
 
     // Center Tag
     it('should parse center tag without attributes', () => {
-      const tpml = `{center}`;
-      const output = printCommands(tpml);
+      const markup = `{center}`;
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([{ name: 'center' }]);
     });
 
     // Image Tag with Complex Attributes
     it('should parse image tag with multiple attributes including data URLs', () => {
-      const tpml = `{image
+      const markup = `{image
         src="data:image/svg+xml,%3Csvg ... %3C/svg%3E"
         width=360
         height=192
         dither=atkinson
       }`;
-      const output = printCommands(tpml);
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         {
@@ -226,16 +226,16 @@ describe('Print Commands', () => {
 
     // Line Tag
     it('should parse line tag correctly', () => {
-      const tpml = `{line}`;
-      const output = printCommands(tpml);
+      const markup = `{line}`;
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([{ name: 'line' }]);
     });
 
     // Text Lines
     it('should parse plain text lines correctly', () => {
-      const tpml = `LAYBY DOCKET`;
-      const output = printCommands(tpml);
+      const markup = `LAYBY DOCKET`;
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         { name: 'line', value: 'LAYBY DOCKET' }
@@ -244,15 +244,15 @@ describe('Print Commands', () => {
 
     // Left Tag
     it('should parse left tag without attributes', () => {
-      const tpml = `{left}`;
-      const output = printCommands(tpml);
+      const markup = `{left}`;
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([{ name: 'left' }]);
     });
 
     // Table Tag with Rows
     it('should parse table tag with multiple rows and attributes', () => {
-      const tpml = `{table
+      const markup = `{table
         cols=2
         margin=1
         width=[10,*]
@@ -262,7 +262,7 @@ describe('Print Commands', () => {
         row=["Customer","CHIN MORPH"]
         row=["Phone","_6P20Q4DJU"]
       }`;
-      const output = printCommands(tpml);
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         {
@@ -285,8 +285,8 @@ describe('Print Commands', () => {
 
     // Rule Tag
     it('should parse rule tag correctly', () => {
-      const tpml = `{rule}`;
-      const output = printCommands(tpml);
+      const markup = `{rule}`;
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         {
@@ -301,8 +301,8 @@ describe('Print Commands', () => {
 
     // Bold Tag and EndBold
     it('should parse bold tag and its closing endBold tag', () => {
-      const tpml = `{bold}LAYBY TERMS AND CONDITIONS\n{endBold}`;
-      const output = printCommands(tpml);
+      const markup = `{bold}LAYBY TERMS AND CONDITIONS\n{endBold}`;
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         { name: 'bold' },
@@ -313,7 +313,7 @@ describe('Print Commands', () => {
 
     // Nested Table with Multiple Rows
     it('should parse nested table with bold and alignment attributes', () => {
-      const tpml = `{bold}
+      const markup = `{bold}
       {table
         cols=4
         margin=1
@@ -322,7 +322,7 @@ describe('Print Commands', () => {
         row=["Item","Qty","Unit","Total"]
       }
       {endBold}`;
-      const output = printCommands(tpml);
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         { name: 'bold' },
@@ -342,8 +342,8 @@ describe('Print Commands', () => {
 
     // Parsing List Items in Text
     it('should parse plain text with line breaks', () => {
-      const tpml = `i) Maximum 3 months lay-by period\nii) Payments must be made every 2 weeks\niii) Cancellation will incur a 10% fee`;
-      const output = printCommands(tpml);
+      const markup = `i) Maximum 3 months lay-by period\nii) Payments must be made every 2 weeks\niii) Cancellation will incur a 10% fee`;
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         { name: 'line', value: 'i) Maximum 3 months lay-by period' },
@@ -353,8 +353,8 @@ describe('Print Commands', () => {
     });
 
     it('should parse tags with empty attributes correctly', () => {
-      const tpml = "{image src='' width=100}";
-      const output = printCommands(tpml);
+      const markup = "{image src='' width=100}";
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         {
@@ -369,8 +369,8 @@ describe('Print Commands', () => {
     });
 
     it('should handle multiple escaped characters within a value', () => {
-      const tpml = "{text This is \\{escaped\\}, and this is \\[escaped\\]}";
-      const output = printCommands(tpml);
+      const markup = "{text This is \\{escaped\\}, and this is \\[escaped\\]}";
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         {
@@ -381,8 +381,8 @@ describe('Print Commands', () => {
     });
 
     it('should handle mixed case keywords correctly', () => {
-      const tpml = "{DoCuMeNt WoRd-WrAp=true}";
-      const output = printCommands(tpml);
+      const markup = "{DoCuMeNt WoRd-WrAp=true}";
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         {
@@ -395,8 +395,8 @@ describe('Print Commands', () => {
     });
 
     it('should handle whitespace around commas in splittable attributes', () => {
-      const tpml = "{table align='left , right'}";
-      const output = printCommands(tpml);
+      const markup = "{table align='left , right'}";
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         {
@@ -409,8 +409,8 @@ describe('Print Commands', () => {
     });
 
     it('should handle unusual but valid attribute values', () => {
-      const tpml = "{rule width=0 line='solid' style='single'}";
-      const output = printCommands(tpml);
+      const markup = "{rule width=0 line='solid' style='single'}";
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         {
@@ -425,14 +425,14 @@ describe('Print Commands', () => {
     });
 
     it('should handle adjacent tags on separate lines correctly', () => {
-      const tpml = `
+      const markup = `
 {bold}
 {italic}
 Some text
 {endItalic}
 {endBold}
 `;
-      const output = printCommands(tpml);
+      const output = printCommands(markup);
 
       expect(output).to.deep.equal([
         { name: 'bold' },
@@ -444,8 +444,8 @@ Some text
     });
 
 
-    it('should correctly parse the entire TPML tpml', () => {
-      const tpml = `
+    it('should correctly parse the entire RPML markup', () => {
+      const markup = `
 {document
   word-wrap=true
 }
@@ -575,7 +575,7 @@ Layby Terms & Conditions
 3) Cancellations incur 10% fee
 `;
 
-      const output = printCommands(tpml);
+      const output = printCommands(markup);
 
       const expectedOutput = [
         {
