@@ -5,13 +5,15 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "build": "node ./build.js"
   },
   "author": "Your Name",
   "license": "MIT",
   "keywords": [],
   "devDependencies": {
     "chai": "^5.1.1",
+    "esbuild": "0.24.0",
     "mocha": "^10.7.3"
   },
   "dependencies": {
