@@ -1,4 +1,4 @@
-import { RPMLDocument } from "./rpmlDocument.js";
+import { RPMLDocument } from './rpmlDocument.js';
 
 export function printCommands(markup, chars) {
   return new RPMLDocument(markup, chars).toCommands();

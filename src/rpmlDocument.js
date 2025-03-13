@@ -12,11 +12,11 @@ export class RPMLDocument {
   }
 
   toCommands() {
-    return this.commands ||= new RPMLParser(this.markup).parse();
+    return (this.commands ||= new RPMLParser(this.markup).parse());
   }
 
   toHtml() {
-    return this.html ||= new RPMLDocumentBuilder(this.toCommands(), this.chars).build();
+    return (this.html ||= new RPMLDocumentBuilder(this.toCommands(), this.chars).build());
   }
 }
 
@@ -28,17 +28,16 @@ class RPMLParser {
   parse() {
     const commands = [];
 
-    let regex = /(?:\s*(?<!\\)(?:\\\\)*{\s*(?<key>\w+)[\s\n]*(?<attrs>(?:[^}]|\\})*)(?<!\\)(?:\\\\)*})|(?<comment>\s*{#[^}]+\s*})|(?<line>[^\n]+)/gmi;
+    let regex =
+      /(?:\s*(?<!\\)(?:\\\\)*{\s*(?<key>\w+)[\s\n]*(?<attrs>(?:[^}]|\\})*)(?<!\\)(?:\\\\)*})|(?<comment>\s*{#[^}]+\s*})|(?<line>[^\n]+)/gim;
 
     let matches = [...this.markup.matchAll(regex)];
 
     for (const match of matches) {
-      if (match.groups.comment)
-        continue;
+      if (match.groups.comment) continue;
 
       let command = this.parseCommand(match, rpmlConfig);
-      if (command)
-        commands.push(command);
+      if (command) commands.push(command);
     }
 
     return commands;
@@ -60,7 +59,7 @@ class RPMLParser {
       } else {
         let toggleName = key.substring(3);
 
-        if (key.startsWith("end") && config[toggleName] && config[toggleName].toggle) {
+        if (key.startsWith('end') && config[toggleName] && config[toggleName].toggle) {
           command = this.endCommand(toggleName);
         } else {
           command = this.unknownCommand(match);
@@ -76,11 +75,10 @@ class RPMLParser {
   commandWithAttributes(key, match, config) {
     let command = {
       name: key,
-    }
+    };
 
-    let attributes = this.parseAttributes(match.groups.attrs, config[key])
-    if (attributes)
-      command.attributes = attributes;
+    let attributes = this.parseAttributes(match.groups.attrs, config[key]);
+    if (attributes) command.attributes = attributes;
 
     return command;
   }
@@ -89,53 +87,52 @@ class RPMLParser {
     return {
       name: key,
       value: this.castValue(match.groups.attrs, config[key].param) || config[key].param.default,
-    }
+    };
   }
 
   endCommand(name) {
     return {
       name: name,
       off: true,
-    }
+    };
   }
 
   lineCommand(match) {
     return {
-      name: "line",
+      name: 'line',
       value: match.groups.line,
-    }
+    };
   }
 
   unknownCommand(match) {
     return {
-      name: "unknown",
+      name: 'unknown',
       key: match.groups.key,
-      attributes: match.groups.attrs
-    }
+      attributes: match.groups.attrs,
+    };
   }
 
   parseAttributes(input, config) {
     const attributes = {};
-    let regex = /\s*(?<key>[^=\s]+)\s*=\s*(?:(?<number>[\d]+)|(?<keyword>[\w\-]+)|(["'])(?<string>.*?(?<!\\))\4|\[(?<array>.*(?<!\\))\])/gi;
+    let regex =
+      /\s*(?<key>[^=\s]+)\s*=\s*(?:(?<number>[\d]+)|(?<keyword>[\w\-]+)|(["'])(?<string>.*?(?<!\\))\4|\[(?<array>.*(?<!\\))\])/gi;
     let matches = [...input.matchAll(regex)];
 
     for (const match of matches) {
       let key = this.camelize(match.groups.key);
 
-      if (!config.attributes[key])
-        continue;
+      if (!config.attributes[key]) continue;
 
-      let rawValue = match.groups.number || match.groups.keyword || match.groups.string || match.groups.array;
+      let rawValue =
+        match.groups.number || match.groups.keyword || match.groups.string || match.groups.array;
       let value = this.castValue(rawValue, config.attributes[key]);
 
-      if (value === null)
-        continue;
+      if (value === null) continue;
 
       if (config.attributes[key].multiple) {
         key = config.attributes[key].key || key;
-        if (!attributes[key])
-          attributes[key] = []
-        attributes[key].push(value)
+        if (!attributes[key]) attributes[key] = [];
+        attributes[key].push(value);
       } else {
         attributes[key] = value;
       }
@@ -151,41 +148,36 @@ class RPMLParser {
   }
 
   castValue(value, config) {
-    if (!value) return "";
+    if (!value) return '';
     // replace all escaped characters with the original
     value = value.replace(/\\(.)/g, (m, chr) => chr);
 
     if (config.split) {
       // split on commas, but only if they're not inside quotes
-      return value.match(/(['"].*?['"]|[^"',\s]+)(?=\s*,|\s*$)/g).map(
-        bit => {
-          return this.cast(bit, config.type, config.options)
-        }
-      )
+      return value.match(/(['"].*?['"]|[^"',\s]+)(?=\s*,|\s*$)/g).map((bit) => {
+        return this.cast(bit, config.type, config.options);
+      });
     } else {
-      return this.cast(value, config.type, config.options)
+      return this.cast(value, config.type, config.options);
     }
   }
 
   cast(value, type, options) {
     switch (this.camelize(type)) {
-      case "number":
-        if (value === "*")
-          return value
+      case 'number':
+        if (value === '*') return value;
 
-        if (!options)
-          return Number(value);
+        if (!options) return Number(value);
 
         return options.includes(Number(value)) ? Number(value) : null;
-      case "boolean":
-        return value === "true";
-      case "keyword":
-        if (!options)
-          return value;
+      case 'boolean':
+        return value === 'true';
+      case 'keyword':
+        if (!options) return value;
 
         return options.includes(value.toLowerCase()) ? value.toLowerCase() : null;
-      case "string":
-        return value.trim().replace(/^"|"$/g, "").replace(/^'|'$/g, "");
+      case 'string':
+        return value.trim().replace(/^"|"$/g, '').replace(/^'|'$/g, '');
     }
   }
 
@@ -199,9 +191,9 @@ class RPMLDocumentBuilder {
     this.commands = commands;
     this.lines = [];
     this.styles = this.defaultStyles;
-    this.fontFamily = "monospace";
-    this.fontSize = "14px";
-    this.lineHeight = "1.3em";
+    this.fontFamily = 'monospace';
+    this.fontSize = '14px';
+    this.lineHeight = '1.3em';
     this.chars = chars;
     this.docWidth;
     this.wordWrap = false;
@@ -209,14 +201,14 @@ class RPMLDocumentBuilder {
 
   defaultStyles() {
     return {
-      alignment: "left",
+      alignment: 'left',
       size: 1,
       bold: false,
       italic: false,
       underline: false,
       invert: false,
       small: false,
-    }
+    };
   }
 
   bodyCss() {
@@ -358,7 +350,7 @@ class RPMLDocumentBuilder {
 
   build() {
     for (const command of this.commands) {
-      if (command.name === "document") {
+      if (command.name === 'document') {
         this.docWidth = this.calculateWidth(this.chars, this.fontFamily, this.fontSize);
         this.wordWrap = command.attributes.wordWrap;
 
@@ -368,47 +360,47 @@ class RPMLDocumentBuilder {
       this.applyCommand(command);
     }
 
-    return this.wrapDocument(this.lines.map(line => line.toHtml()).join(`\n`));
+    return this.wrapDocument(this.lines.map((line) => line.toHtml()).join(`\n`));
   }
 
   wrapDocument(content) {
     const docStyles = `width: ${this.docWidth}px; margin: 0 auto;`;
-    const wordWrap = this.wordWrap ? "word-wrap: break-word;" : "";
+    const wordWrap = this.wordWrap ? 'word-wrap: break-word;' : '';
 
     return `<html><head>${this.bodyCss()}</head><body><article style="${docStyles}${wordWrap}">\n${content}\n</article></body></html>`;
   }
 
   applyCommand(command) {
     switch (command.name) {
-      case "left":
+      case 'left':
         this.styles.alignment = command.name;
         break;
-      case "right":
+      case 'right':
         this.styles.alignment = command.name;
         break;
-      case "center":
+      case 'center':
         this.styles.alignment = command.name;
         break;
-      case "size":
+      case 'size':
         this.styles.size = command.value;
         break;
-      case "bold":
+      case 'bold':
         this.styles.bold = command.off === true ? false : true;
         break;
-      case "italic":
+      case 'italic':
         this.styles.italic = command.off === true ? false : true;
         break;
-      case "underline":
+      case 'underline':
         this.styles.underline = command.off === true ? false : true;
         break;
-      case "invert":
+      case 'invert':
         this.styles.invert = command.off === true ? false : true;
         break;
-      case "small":
+      case 'small':
         this.styles.small = command.off === true ? false : true;
         break;
-      case "line":
-      case "text":
+      case 'line':
+      case 'text':
         this.addLine(command, { ...this.styles });
         break;
       default:
@@ -441,23 +433,18 @@ class RPMLDocumentLine {
     this.blockClasses = [];
     this.contentClasses = [];
 
-    if (this.styles.small)
-      this.contentClasses.push("small");
+    if (this.styles.small) this.contentClasses.push('small');
 
-    if (this.styles.bold)
-      this.contentClasses.push("bold");
+    if (this.styles.bold) this.contentClasses.push('bold');
 
-    if (this.styles.italic)
-      this.contentClasses.push("italic");
+    if (this.styles.italic) this.contentClasses.push('italic');
 
-    if (this.styles.underline)
-      this.contentClasses.push("underline");
+    if (this.styles.underline) this.contentClasses.push('underline');
 
-    if (this.styles.invert)
-      this.contentClasses.push("invert");
+    if (this.styles.invert) this.contentClasses.push('invert');
 
-    if (this.styles.size && (this.command.name == "line" || this.command.name == "text")) {
-      this.blockClasses.push("size-" + this.styles.size);
+    if (this.styles.size && (this.command.name == 'line' || this.command.name == 'text')) {
+      this.blockClasses.push('size-' + this.styles.size);
     }
 
     this.blockClasses.push(this.styles.alignment);
@@ -466,50 +453,54 @@ class RPMLDocumentLine {
   toHtml() {
     let html = ``;
     let value = this.command.value || ``;
-    const blockClasses = this.blockClasses.join(" ");
-    const contentClasses =  this.contentClasses.join(" ");
+    const blockClasses = this.blockClasses.join(' ');
+    const contentClasses = this.contentClasses.join(' ');
 
     switch (this.command.name) {
-      case "image":
-        let size = "";
+      case 'image':
+        let size = '';
         if (this.command.attributes.size) {
           size = `width="${this.command.attributes.size}%"`;
         }
 
         html += `<div class="${blockClasses} img"><img src="${this.command.attributes.src}" ${size}></div>`;
         break;
-      case "line":
-        if (this.precedingLine && this.precedingLine.command.name == "text") {
-          html += `<br>`
+      case 'line':
+        if (this.precedingLine && this.precedingLine.command.name == 'text') {
+          html += `<br>`;
         } else {
           html += `<div class="${blockClasses}"><span class="${contentClasses}">${value}</span></div>`;
         }
         break;
-      case "text":
+      case 'text':
         html += `<span class="${contentClasses}">${value}</span>`;
         break;
-      case "rule":
+      case 'rule':
         const charCount = this.builder.chars;
-        if (this.command.attributes.line == "dashed") {
-          let char = this.command.attributes.style == "double" ? "=" : "-";
+        if (this.command.attributes.line == 'dashed') {
+          let char = this.command.attributes.style == 'double' ? '=' : '-';
           html += `<div class="${blockClasses} rule rule-dashed"><span class="${contentClasses}">${char.repeat(this.command.attributes.width || charCount)}</span></div>`;
         } else {
-          let width = "100%";
+          let width = '100%';
           if (this.command.attributes.width) {
             width = `${(this.command.attributes.width / charCount) * 100.0}%`;
           }
-          let cls = ` ${this.command.attributes.style == "double" ? "border-bottom: 1px solid black; height: 3px;" : ""}`;
+          let cls = ` ${this.command.attributes.style == 'double' ? 'border-bottom: 1px solid black; height: 3px;' : ''}`;
           html += `<div class="${blockClasses} rule" style="position:relative;"><div class="rule-solid${cls}" style="width: ${width};"></div></div>`;
         }
         break;
-      case "table":
+      case 'table':
         html += `<table>`;
 
         for (const row of this.command.attributes.rows) {
           html += `<tr>`;
 
           for (const [index, cell] of row.entries()) {
-            let width, widthStyle="", widthPX, marginColumn="", alignment = "left";
+            let width,
+              widthStyle = '',
+              widthPX,
+              marginColumn = '',
+              alignment = 'left';
             let margin = this.command.attributes.margin || 0;
             margin = parseInt(margin);
 
@@ -520,9 +511,11 @@ class RPMLDocumentLine {
             if (this.command.attributes.width) {
               width = this.command.attributes.width[index];
 
-              if (width == "*") {
+              if (width == '*') {
                 width = this.builder.chars;
-                this.command.attributes.width.filter(w => w != "*").forEach(w => width -= parseInt(w) + margin);
+                this.command.attributes.width
+                  .filter((w) => w != '*')
+                  .forEach((w) => (width -= parseInt(w) + margin));
               } else {
                 width = parseInt(width);
               }
@@ -543,20 +536,19 @@ class RPMLDocumentLine {
             html += `<td data-cols="${width}" class="${contentClasses}" style="text-align: ${alignment}; ${widthStyle}">${cell}</td>${marginColumn}`;
           }
 
-          html += "</tr>";
+          html += '</tr>';
         }
 
-        html += "</table>";
+        html += '</table>';
         break;
-      case "barcode":
+      case 'barcode':
         html += `<div class="${blockClasses} barcode"><img src="https://barcode.tec-it.com/barcode.ashx?data=${this.command.attributes.data}&code=${this.command.attributes.type}" width="100%"></div>`;
         break;
-      case "qrcode":
+      case 'qrcode':
         // super rough implementation of sizing
         let dims = parseInt(21 * this.command.attributes.size);
         html += `<div class="${blockClasses} qrcode"><img src="https://api.qrserver.com/v1/create-qr-code/?size=${dims}x${dims}&data=${this.command.attributes.data}"></div>`;
         break;
-
     }
 
     return html;
