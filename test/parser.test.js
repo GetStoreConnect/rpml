@@ -1,10 +1,10 @@
 import { expect } from 'chai';
-import { printCommands } from '../src/index.js';
+import { parse } from '../src/parser.js';
 
-describe('Print Commands', () => {
-  it('should parse basic commands', () => {
+describe('Parser', () => {
+  it('parses basic commands', () => {
     const markup = '{document word-wrap=true}';
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -16,25 +16,25 @@ describe('Print Commands', () => {
     ]);
   });
 
-  it('should ignore comments', () => {
+  it('ignores comments', () => {
     const markup = '{# this is a comment }\n{document word-wrap=true}';
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output.length).to.equal(1);
     expect(output[0].name).to.equal('document');
   });
 
-  it('should handle unknown commands', () => {
+  it('handles unknown commands', () => {
     const markup = '{unknownCommand}';
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output[0].name).to.equal('unknown');
   });
 
   // Image Tag
-  it('should parse image tag with multiple attributes', () => {
+  it('parses image tag with multiple attributes', () => {
     const markup = "{image src='image.png' width=200 height=100 dither='bayer'}";
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -50,9 +50,9 @@ describe('Print Commands', () => {
   });
 
   // Rule Tag
-  it('should parse rule tag with keyword options', () => {
+  it('parses rule tag with keyword options', () => {
     const markup = "{rule width=2 line='solid' style='double'}";
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -67,9 +67,9 @@ describe('Print Commands', () => {
   });
 
   // Text Tag
-  it('should parse text tag with string parameter', () => {
+  it('parses text tag with string parameter', () => {
     const markup = '{text This is a sample text}';
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -80,9 +80,9 @@ describe('Print Commands', () => {
   });
 
   // Height Tag
-  it('should parse size tag with numeric parameter', () => {
+  it('parses size tag with numeric parameter', () => {
     const markup = '{size 3}';
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -93,9 +93,9 @@ describe('Print Commands', () => {
   });
 
   // Barcode Tag
-  it('should parse barcode tag with multiple attributes', () => {
+  it('parses barcode tag with multiple attributes', () => {
     const markup = "{barcode type='upca' data='012345678905' height=75 position='below'}";
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -111,9 +111,9 @@ describe('Print Commands', () => {
   });
 
   // QRCode Tag
-  it('should parse qrcode tag with multiple attributes', () => {
+  it('parses qrcode tag with multiple attributes', () => {
     const markup = "{qrcode data='https://example.com' level='m' model='2' size=7}";
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -129,9 +129,9 @@ describe('Print Commands', () => {
   });
 
   // Escaped Braces
-  it('should handle escaped braces inside tags', () => {
+  it('handles escaped braces inside tags', () => {
     const markup = '{text This is \\{escaped\\} text}';
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -142,9 +142,9 @@ describe('Print Commands', () => {
   });
 
   // Escaped Quotes
-  it('should handle escaped quote inside attributes', () => {
+  it('handles escaped quote inside attributes', () => {
     const markup = `{text "This is a string with an escaped quote: \"quote\" inside"}`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -155,9 +155,9 @@ describe('Print Commands', () => {
   });
 
   // Unknown Command
-  it('should handle unknown commands gracefully', () => {
+  it('handles unknown commands gracefully', () => {
     const markup = '{unknownCommand someValue}';
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -169,11 +169,11 @@ describe('Print Commands', () => {
   });
 
   // Document Tag
-  it('should parse document tag with boolean attribute', () => {
+  it('parses document tag with boolean attribute', () => {
     const markup = `{document
         word-wrap=true
       }`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -186,30 +186,30 @@ describe('Print Commands', () => {
   });
 
   // Comment Handling
-  it('should ignore comments in the template', () => {
+  it('ignores comments in the template', () => {
     const markup = `{# this is a comment }`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([]);
   });
 
   // Center Tag
-  it('should parse center tag without attributes', () => {
+  it('parses center tag without attributes', () => {
     const markup = `{center}`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([{ name: 'center' }]);
   });
 
   // Image Tag with Complex Attributes
-  it('should parse image tag with multiple attributes including data URLs', () => {
+  it('parses image tag with multiple attributes including data URLs', () => {
     const markup = `{image
         src="data:image/svg+xml,%3Csvg ... %3C/svg%3E"
         width=360
         height=192
         dither=atkinson
       }`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -225,31 +225,31 @@ describe('Print Commands', () => {
   });
 
   // Line Tag
-  it('should parse line tag correctly', () => {
+  it('parses line tag correctly', () => {
     const markup = `{line}`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([{ name: 'line' }]);
   });
 
   // Text Lines
-  it('should parse plain text lines correctly', () => {
+  it('parses plain text lines correctly', () => {
     const markup = `LAYBY DOCKET`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([{ name: 'line', value: 'LAYBY DOCKET' }]);
   });
 
   // Left Tag
-  it('should parse left tag without attributes', () => {
+  it('parses left tag without attributes', () => {
     const markup = `{left}`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([{ name: 'left' }]);
   });
 
   // Table Tag with Rows
-  it('should parse table tag with multiple rows and attributes', () => {
+  it('parses table tag with multiple rows and attributes', () => {
     const markup = `{table
         cols=2
         margin=1
@@ -260,7 +260,7 @@ describe('Print Commands', () => {
         row=["Customer","CHIN MORPH"]
         row=["Phone","_6P20Q4DJU"]
       }`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -282,9 +282,9 @@ describe('Print Commands', () => {
   });
 
   // Rule Tag
-  it('should parse rule tag correctly', () => {
+  it('parses rule tag correctly', () => {
     const markup = `{rule}`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -298,9 +298,9 @@ describe('Print Commands', () => {
   });
 
   // Bold Tag and EndBold
-  it('should parse bold tag and its closing endBold tag', () => {
+  it('parses bold tag and its closing endBold tag', () => {
     const markup = `{bold}LAYBY TERMS AND CONDITIONS\n{endBold}`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       { name: 'bold' },
@@ -310,7 +310,7 @@ describe('Print Commands', () => {
   });
 
   // Nested Table with Multiple Rows
-  it('should parse nested table with bold and alignment attributes', () => {
+  it('parses nested table with bold and alignment attributes', () => {
     const markup = `{bold}
       {table
         cols=4
@@ -320,7 +320,7 @@ describe('Print Commands', () => {
         row=["Item","Qty","Unit","Total"]
       }
       {endBold}`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       { name: 'bold' },
@@ -339,9 +339,9 @@ describe('Print Commands', () => {
   });
 
   // Parsing List Items in Text
-  it('should parse plain text with line breaks', () => {
+  it('parses plain text with line breaks', () => {
     const markup = `i) Maximum 3 months lay-by period\nii) Payments must be made every 2 weeks\niii) Cancellation will incur a 10% fee`;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       { name: 'line', value: 'i) Maximum 3 months lay-by period' },
@@ -350,9 +350,9 @@ describe('Print Commands', () => {
     ]);
   });
 
-  it('should parse tags with empty attributes correctly', () => {
+  it('parses tags with empty attributes correctly', () => {
     const markup = "{image src='' width=100}";
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -366,9 +366,9 @@ describe('Print Commands', () => {
     ]);
   });
 
-  it('should handle multiple escaped characters within a value', () => {
+  it('handles multiple escaped characters within a value', () => {
     const markup = '{text This is \\{escaped\\}, and this is \\[escaped\\]}';
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -378,9 +378,9 @@ describe('Print Commands', () => {
     ]);
   });
 
-  it('should handle mixed case keywords correctly', () => {
+  it('handles mixed case keywords correctly', () => {
     const markup = '{DoCuMeNt WoRd-WrAp=true}';
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -392,9 +392,9 @@ describe('Print Commands', () => {
     ]);
   });
 
-  it('should handle whitespace around commas in splittable attributes', () => {
+  it('handles whitespace around commas in splittable attributes', () => {
     const markup = "{table align='left , right'}";
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -406,9 +406,9 @@ describe('Print Commands', () => {
     ]);
   });
 
-  it('should handle unusual but valid attribute values', () => {
+  it('handles unusual but valid attribute values', () => {
     const markup = "{rule width=0 line='solid' style='single'}";
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
@@ -422,7 +422,7 @@ describe('Print Commands', () => {
     ]);
   });
 
-  it('should handle adjacent tags on separate lines correctly', () => {
+  it('handles adjacent tags on separate lines correctly', () => {
     const markup = `
 {bold}
 {italic}
@@ -430,7 +430,7 @@ Some text
 {endItalic}
 {endBold}
 `;
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     expect(output).to.deep.equal([
       { name: 'bold' },
@@ -441,7 +441,7 @@ Some text
     ]);
   });
 
-  it('should correctly parse the entire RPML markup', () => {
+  it('correctly parses the entire RPML markup', () => {
     const markup = `
 {document
   word-wrap=true
@@ -572,7 +572,7 @@ Layby Terms & Conditions
 3) Cancellations incur 10% fee
 `;
 
-    const output = printCommands(markup);
+    const output = parse(markup);
 
     const expectedOutput = [
       {
