@@ -1,8 +1,18 @@
 import { expect } from 'chai';
-import { printPreview } from '../src/index.js';
+import { parse } from '../../src/parser.js';
+import { renderHtml, renderRule } from '../../src/renderers/html.js';
 
-describe('Print Preview', () => {
-  it('should correctly parse the entire RPML markup', () => {
+describe('HTML Renderer', () => {
+  it('renders a double rule', () => {
+    const command = { attributes: { line: 'solid', style: 'double' } };
+    const state = { chars: 32, styles: {} };
+    const output = renderRule({ command, state });
+    const expectedOutput =
+      '<div class=" rule" style="position:relative;"><div class="rule-solid" style="width: 100%; border-bottom: 1px solid black; min-height: 3px; height: 3px;"></div></div>';
+    expect(output).to.equal(expectedOutput);
+  });
+
+  it('correctly parses the entire RPML markup', () => {
     const markup = `
 {document
 word-wrap=true
@@ -133,142 +143,148 @@ Layby Terms & Conditions
 3) Cancellations incur 10% fee
 `;
 
-    const output = printPreview(markup);
-    const expectedOutput = `<html><head><style>
-  body {
-    font-family: monospace;
-    font-size: 14px;
-    line-height: 1.3em;
-    background-color: transparent;
-    margin: 0;
-    padding: 0;
+    const output = renderHtml({ commands: parse(markup) });
+    const expectedOutput = `
+    <html>
+      <head>
+        <style>
+    body {
+      font-family: monospace;
+      font-size: 14px;
+      line-height: 1.3em;
+      background-color: transparent;
+      margin: 0;
+      padding: 0;
 
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: break-all;
-  }
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-all;
+    }
 
-  article {
-    padding: 1em;
-    background-color: white;
-    color: black;
-  }
+    article {
+      padding: 1em;
+      background-color: white;
+      color: black;
+    }
 
-  div {
-    min-height: 1.3em;
-    text-align: left;
-  }
+    div {
+      min-height: 1.3em;
+      text-align: left;
+    }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0;
-    padding: 0;
-  }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0;
+      padding: 0;
+    }
 
-  tr {
-    border: none;
-    margin: 0;
-    padding: 0;
-  }
+    tr {
+      border: none;
+      margin: 0;
+      padding: 0;
+    }
 
-  td {
-    border: none;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    vertical-align: top;
-  }
+    td {
+      border: none;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      vertical-align: top;
+    }
 
-  img {
-    filter: grayscale(100%);
-  }
+    img {
+      filter: grayscale(100%);
+    }
 
-  .small {
-    font-size: 80%;
-  }
+    .small {
+      font-size: 80%;
+    }
 
-  .size-1, .size-2, .size-3, .size-4, .size-5, .size-6 {
-    line-height: 100%;
-  }
+    .size-1, .size-2, .size-3, .size-4, .size-5, .size-6 {
+      line-height: 100%;
+    }
 
-  .size-1 {
-    font-size: 100%;
-  }
+    .size-1 {
+      font-size: 100%;
+    }
 
-  .size-2 {
-    font-size: 200%;
-  }
+    .size-2 {
+      font-size: 200%;
+    }
 
-  .size-3 {
-    font-size: 300%;
-  }
+    .size-3 {
+      font-size: 300%;
+    }
 
-  .size-4 {
-    font-size: 400%;
-  }
+    .size-4 {
+      font-size: 400%;
+    }
 
-  .size-5 {
-    font-size: 500%;
-  }
+    .size-5 {
+      font-size: 500%;
+    }
 
-  .size-6 {
-    font-size: 600%;
-  }
+    .size-6 {
+      font-size: 600%;
+    }
 
-  .bold {
-    font-weight: bold;
-  }
+    .bold {
+      font-weight: bold;
+    }
 
-  .italic {
-    font-style: italic;
-  }
+    .italic {
+      font-style: italic;
+    }
 
-  .underline {
-    text-decoration: underline;
-  }
+    .underline {
+      text-decoration: underline;
+    }
 
-  .invert {
-    // filter: invert(100%);
-    background-color: black;
-    color: white;
-  }
+    .invert {
+      // filter: invert(100%);
+      background-color: black;
+      color: white;
+    }
 
-  .center {
-    text-align: center;
-  }
+    .center {
+      text-align: center;
+    }
 
-  .left {
-    text-align: left;
-  }
+    .left {
+      text-align: left;
+    }
 
-  .right {
-    text-align: right;
-  }
+    .right {
+      text-align: right;
+    }
 
-  .img {
-    width: 100%;
-  }
+    .img {
+      width: 100%;
+    }
 
-  .rule {
-    position:relative;
-  }
+    .rule {
+      position:relative;
+    }
 
-  .rule .rule-solid {
-    border: none;
-    margin: 0;
-    padding: 0;
-    border-top: 1px solid black;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-  }
+    .rule .rule-solid {
+      border: none;
+      margin: 0;
+      padding: 0;
+      border-top: 1px solid black;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+    }
 
-  .barcode, .qrcode {
-    width: 100%;
-  }
-</style></head><body><article style="width: 269.71875px; margin: 0 auto;word-wrap: break-word;">
-<div class="center img"><img src="https://cdn.glitch.com/4c9ebeb9-8b9a-4adc-ad0a-238d9ae00bb5%2Fmdn_logo-only_color.svg?1535749917189" width="80%"></div>
+    .barcode, .qrcode {
+      width: 100%;
+    }
+  </style>
+      </head>
+      <body>
+        <article style="width: 269.71875px; margin: 0 auto;word-wrap: break-word;">
+          <div class="center img"><img src="https://cdn.glitch.com/4c9ebeb9-8b9a-4adc-ad0a-238d9ae00bb5%2Fmdn_logo-only_color.svg?1535749917189" width="80%"></div>
 <div class="size-1 center"><span class=""></span></div>
 <div class="size-1 center"><span class="">LAYBY DOCKET</span></div>
 <div class="size-1 center"><span class=""></span></div>
@@ -302,7 +318,11 @@ Layby Terms & Conditions
 <div class="size-1 left"><span class="">1) Maximum layby period 3 months</span></div>
 <div class="size-1 left"><span class="">2) Payments due every 2 weeks</span></div>
 <div class="size-1 left"><span class="">3) Cancellations incur 10% fee</span></div>
-</article></body></html>`;
+
+        </article>
+      </body>
+    </html>
+  `;
 
     expect(output).to.equal(expectedOutput);
   });

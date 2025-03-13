@@ -1,11 +1,4 @@
-import { RPMLDocument } from './rpmlDocument.js';
+import { parse } from './parser.js';
+import { renderHtml } from './renderers/html.js';
 
-export function printCommands(markup, chars) {
-  return new RPMLDocument(markup, chars).toCommands();
-}
-
-export function printPreview(markup, chars) {
-  const html = new RPMLDocument(markup, chars).toHtml();
-
-  return html;
-}
+export { parse, renderHtml };
