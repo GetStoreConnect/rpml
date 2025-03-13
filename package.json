@@ -12,12 +12,10 @@
   "license": "MIT",
   "keywords": [],
   "devDependencies": {
+    "canvas": "^2.11.2",
     "chai": "^5.1.1",
     "esbuild": "0.24.0",
     "mocha": "^10.7.3",
     "prettier": "^3.5.3"
-  },
-  "dependencies": {
-    "canvas": "^2.11.2"
   }
 }

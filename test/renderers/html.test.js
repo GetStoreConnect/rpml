@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { createCanvas } from 'canvas';
 import { parse } from '../../src/parser.js';
 import { renderHtml, renderRule } from '../../src/renderers/html.js';
 
@@ -143,7 +144,7 @@ Layby Terms & Conditions
 3) Cancellations incur 10% fee
 `;
 
-    const output = renderHtml({ commands: parse(markup) });
+    const output = renderHtml({ commands: parse(markup), createCanvas });
     const expectedOutput = `
     <html>
       <head>

@@ -1,7 +1,6 @@
-import { createCanvas } from 'canvas';
-
 export function renderHtml({
   commands,
+  createCanvas,
   chars = 32,
   fontFamily = 'monospace',
   fontSize = '14px',
@@ -18,7 +17,7 @@ export function renderHtml({
     small: false,
   };
 
-  const docWidth = calculateDocWidth({ chars, fontFamily, fontSize });
+  const docWidth = calculateDocWidth({ createCanvas, chars, fontFamily, fontSize });
 
   const state = {
     html: '',
@@ -36,7 +35,7 @@ export function renderHtml({
   return wrapDocument({ state, fontFamily, fontSize, lineHeight });
 }
 
-export function calculateDocWidth({ chars, fontFamily, fontSize }) {
+export function calculateDocWidth({ createCanvas, chars, fontFamily, fontSize }) {
   const canvas = createCanvas(200, 50); // The size here doesn't matter for measuring text width
   const context = canvas.getContext('2d');
 
