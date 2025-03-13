@@ -1,4 +1,4 @@
-import rpmlConfig from './rpmlConfig.js';
+import defaultSchema from './schema.js';
 import { createCanvas } from 'canvas';
 
 export class RPMLDocument {
@@ -36,30 +36,30 @@ class RPMLParser {
     for (const match of matches) {
       if (match.groups.comment) continue;
 
-      let command = this.parseCommand(match, rpmlConfig);
+      let command = this.parseCommand(match, defaultSchema);
       if (command) commands.push(command);
     }
 
     return commands;
   }
 
-  parseCommand(match, config) {
+  parseCommand(match, schema) {
     let command;
 
     if (match.groups.key) {
       let key = this.camelize(match.groups.key);
-      if (config[key]) {
-        if (config[key].attributes) {
-          command = this.commandWithAttributes(key, match, config);
-        } else if (config[key].param) {
-          command = this.commandWithParam(key, match, config);
+      if (schema[key]) {
+        if (schema[key].attributes) {
+          command = this.commandWithAttributes(key, match, schema);
+        } else if (schema[key].param) {
+          command = this.commandWithParam(key, match, schema);
         } else {
           command = { name: key };
         }
       } else {
         let toggleName = key.substring(3);
 
-        if (key.startsWith('end') && config[toggleName] && config[toggleName].toggle) {
+        if (key.startsWith('end') && schema[toggleName] && schema[toggleName].toggle) {
           command = this.endCommand(toggleName);
         } else {
           command = this.unknownCommand(match);
@@ -72,21 +72,21 @@ class RPMLParser {
     return command;
   }
 
-  commandWithAttributes(key, match, config) {
+  commandWithAttributes(key, match, schema) {
     let command = {
       name: key,
     };
 
-    let attributes = this.parseAttributes(match.groups.attrs, config[key]);
+    let attributes = this.parseAttributes(match.groups.attrs, schema[key]);
     if (attributes) command.attributes = attributes;
 
     return command;
   }
 
-  commandWithParam(key, match, config) {
+  commandWithParam(key, match, schema) {
     return {
       name: key,
-      value: this.castValue(match.groups.attrs, config[key].param) || config[key].param.default,
+      value: this.castValue(match.groups.attrs, schema[key].param) || schema[key].param.default,
     };
   }
 
@@ -112,7 +112,7 @@ class RPMLParser {
     };
   }
 
-  parseAttributes(input, config) {
+  parseAttributes(input, schema) {
     const attributes = {};
     let regex =
       /\s*(?<key>[^=\s]+)\s*=\s*(?:(?<number>[\d]+)|(?<keyword>[\w\-]+)|(["'])(?<string>.*?(?<!\\))\4|\[(?<array>.*(?<!\\))\])/gi;
@@ -121,16 +121,16 @@ class RPMLParser {
     for (const match of matches) {
       let key = this.camelize(match.groups.key);
 
-      if (!config.attributes[key]) continue;
+      if (!schema.attributes[key]) continue;
 
       let rawValue =
         match.groups.number || match.groups.keyword || match.groups.string || match.groups.array;
-      let value = this.castValue(rawValue, config.attributes[key]);
+      let value = this.castValue(rawValue, schema.attributes[key]);
 
       if (value === null) continue;
 
-      if (config.attributes[key].multiple) {
-        key = config.attributes[key].key || key;
+      if (schema.attributes[key].multiple) {
+        key = schema.attributes[key].key || key;
         if (!attributes[key]) attributes[key] = [];
         attributes[key].push(value);
       } else {
@@ -139,26 +139,26 @@ class RPMLParser {
     }
 
     // check for default values
-    for (const key in config.attributes) {
-      if (config.attributes[key].default !== undefined && attributes[key] === undefined)
-        attributes[key] = config.attributes[key].default;
+    for (const key in schema.attributes) {
+      if (schema.attributes[key].default !== undefined && attributes[key] === undefined)
+        attributes[key] = schema.attributes[key].default;
     }
 
     return attributes;
   }
 
-  castValue(value, config) {
+  castValue(value, schema) {
     if (!value) return '';
     // replace all escaped characters with the original
     value = value.replace(/\\(.)/g, (m, chr) => chr);
 
-    if (config.split) {
+    if (schema.split) {
       // split on commas, but only if they're not inside quotes
       return value.match(/(['"].*?['"]|[^"',\s]+)(?=\s*,|\s*$)/g).map((bit) => {
-        return this.cast(bit, config.type, config.options);
+        return this.cast(bit, schema.type, schema.options);
       });
     } else {
-      return this.cast(value, config.type, config.options);
+      return this.cast(value, schema.type, schema.options);
     }
   }
 

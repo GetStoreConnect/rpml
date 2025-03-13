@@ -1,4 +1,4 @@
-const rpmlConfig = {
+const schema = {
   document: {
     attributes: {
       wordWrap: { type: 'boolean', default: false },
@@ -76,4 +76,4 @@ const rpmlConfig = {
   },
 };
 
-export default rpmlConfig;
+export default schema;
