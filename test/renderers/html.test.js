@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { createCanvas } from 'canvas';
 import { parse } from '../../src/parser.js';
-import { renderHtml, renderRule } from '../../src/renderers/html.js';
+import { renderHtml, renderRule, css } from '../../src/renderers/html.js';
 
 describe('HTML Renderer', () => {
   it('renders a double rule', () => {
@@ -148,139 +148,9 @@ Layby Terms & Conditions
     const expectedOutput = `
     <html>
       <head>
-        <style>
-    body {
-      background-color: transparent;
-      margin: 0;
-      padding: 0;
-    }
-
-    .rpml-receipt {
-      padding: 1em;
-      background-color: white;
-      color: black;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      word-break: break-all;
-    }
-
-    .rpml-block {
-      min-height: 1.3em;
-      text-align: left;
-    }
-
-    .rpml-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 0;
-      padding: 0;
-    }
-
-    .rpml-tr {
-      border: none;
-      margin: 0;
-      padding: 0;
-    }
-
-    .rpml-td {
-      border: none;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-      vertical-align: top;
-    }
-
-    .rpml-img {
-      filter: grayscale(100%);
-    }
-
-    .rpml-small {
-      font-size: 80%;
-    }
-
-    .rpml-size-1 {
-      line-height: 100%;
-      font-size: 100%;
-    }
-
-    .rpml-size-2 {
-      line-height: 100%;
-      font-size: 200%;
-    }
-
-    .rpml-size-3 {
-      line-height: 100%;
-      font-size: 300%;
-    }
-
-    .rpml-size-4 {
-      line-height: 100%;
-      font-size: 400%;
-    }
-
-    .rpml-size-5 {
-      line-height: 100%;
-      font-size: 500%;
-    }
-
-    .rpml-size-6 {
-      line-height: 100%;
-      font-size: 600%;
-    }
-
-    .rpml-bold {
-      font-weight: bold;
-    }
-
-    .rpml-italic {
-      font-style: italic;
-    }
-
-    .rpml-underline {
-      text-decoration: underline;
-    }
-
-    .rpml-invert {
-      background-color: black;
-      color: white;
-    }
-
-    .rpml-center {
-      text-align: center;
-    }
-
-    .rpml-left {
-      text-align: left;
-    }
-
-    .rpml-right {
-      text-align: right;
-    }
-
-    .rpml-img-wrapper {
-      width: 100%;
-    }
-
-    .rpml-rule {
-      position:relative;
-    }
-
-    .rpml-rule .rpml-rule-solid {
-      border: none;
-      margin: 0;
-      padding: 0;
-      border-top: 1px solid black;
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-
-    .rpml-barcode, .rpml-qrcode {
-      width: 100%;
-    }
-  </style>
+        <style>${css}</style>
       </head>
-      <body>
+      <body class="rpml-body">
         <div class="rpml-receipt" style="width: 269.71875px; margin: 0 auto;word-wrap: break-word;font-family: monospace; font-size: 14px; line-height: 1.3em;">
           <div class="rpml-block rpml-center rpml-img-wrapper"><img class="rpml-img" src="https://cdn.glitch.com/4c9ebeb9-8b9a-4adc-ad0a-238d9ae00bb5%2Fmdn_logo-only_color.svg?1535749917189" width="80%"></div>
 <div class="rpml-block rpml-center rpml-size-1"><span class=""></span></div>

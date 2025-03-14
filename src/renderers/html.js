@@ -265,9 +265,9 @@ export function wrapDocument({ state, fontFamily, fontSize, lineHeight }) {
   return `
     <html>
       <head>
-        <style>${css()}</style>
+        <style>${css}</style>
       </head>
-      <body>
+      <body class="rpml-body">
         <div class="rpml-receipt" style="${docStyles}${wordWrap}${fontStyles}">
           ${state.html}
         </div>
@@ -276,136 +276,134 @@ export function wrapDocument({ state, fontFamily, fontSize, lineHeight }) {
   `;
 }
 
-export function css() {
-  return `
-    body {
-      background-color: transparent;
-      margin: 0;
-      padding: 0;
-    }
+export const css = `
+  .rpml-body {
+    background-color: transparent;
+    margin: 0;
+    padding: 0;
+  }
 
-    .rpml-receipt {
-      padding: 1em;
-      background-color: white;
-      color: black;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      word-break: break-all;
-    }
+  .rpml-receipt {
+    padding: 1em;
+    background-color: white;
+    color: black;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-all;
+  }
 
-    .rpml-block {
-      min-height: 1.3em;
-      text-align: left;
-    }
+  .rpml-block {
+    min-height: 1.3em;
+    text-align: left;
+  }
 
-    .rpml-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 0;
-      padding: 0;
-    }
+  .rpml-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    padding: 0;
+  }
 
-    .rpml-tr {
-      border: none;
-      margin: 0;
-      padding: 0;
-    }
+  .rpml-tr {
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
 
-    .rpml-td {
-      border: none;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-      vertical-align: top;
-    }
+  .rpml-td {
+    border: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    vertical-align: top;
+  }
 
-    .rpml-img {
-      filter: grayscale(100%);
-    }
+  .rpml-img {
+    filter: grayscale(100%);
+  }
 
-    .rpml-small {
-      font-size: 80%;
-    }
+  .rpml-small {
+    font-size: 80%;
+  }
 
-    .rpml-size-1 {
-      line-height: 100%;
-      font-size: 100%;
-    }
+  .rpml-size-1 {
+    line-height: 100%;
+    font-size: 100%;
+  }
 
-    .rpml-size-2 {
-      line-height: 100%;
-      font-size: 200%;
-    }
+  .rpml-size-2 {
+    line-height: 100%;
+    font-size: 200%;
+  }
 
-    .rpml-size-3 {
-      line-height: 100%;
-      font-size: 300%;
-    }
+  .rpml-size-3 {
+    line-height: 100%;
+    font-size: 300%;
+  }
 
-    .rpml-size-4 {
-      line-height: 100%;
-      font-size: 400%;
-    }
+  .rpml-size-4 {
+    line-height: 100%;
+    font-size: 400%;
+  }
 
-    .rpml-size-5 {
-      line-height: 100%;
-      font-size: 500%;
-    }
+  .rpml-size-5 {
+    line-height: 100%;
+    font-size: 500%;
+  }
 
-    .rpml-size-6 {
-      line-height: 100%;
-      font-size: 600%;
-    }
+  .rpml-size-6 {
+    line-height: 100%;
+    font-size: 600%;
+  }
 
-    .rpml-bold {
-      font-weight: bold;
-    }
+  .rpml-bold {
+    font-weight: bold;
+  }
 
-    .rpml-italic {
-      font-style: italic;
-    }
+  .rpml-italic {
+    font-style: italic;
+  }
 
-    .rpml-underline {
-      text-decoration: underline;
-    }
+  .rpml-underline {
+    text-decoration: underline;
+  }
 
-    .rpml-invert {
-      background-color: black;
-      color: white;
-    }
+  .rpml-invert {
+    background-color: black;
+    color: white;
+  }
 
-    .rpml-center {
-      text-align: center;
-    }
+  .rpml-center {
+    text-align: center;
+  }
 
-    .rpml-left {
-      text-align: left;
-    }
+  .rpml-left {
+    text-align: left;
+  }
 
-    .rpml-right {
-      text-align: right;
-    }
+  .rpml-right {
+    text-align: right;
+  }
 
-    .rpml-img-wrapper {
-      width: 100%;
-    }
+  .rpml-img-wrapper {
+    width: 100%;
+  }
 
-    .rpml-rule {
-      position:relative;
-    }
+  .rpml-rule {
+    position:relative;
+  }
 
-    .rpml-rule .rpml-rule-solid {
-      border: none;
-      margin: 0;
-      padding: 0;
-      border-top: 1px solid black;
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-    }
+  .rpml-rule .rpml-rule-solid {
+    border: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid black;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
 
-    .rpml-barcode, .rpml-qrcode {
-      width: 100%;
-    }
-  `;
-}
+  .rpml-barcode, .rpml-qrcode {
+    width: 100%;
+  }
+`;
