@@ -177,7 +177,7 @@ function receiptCommand(command, chain, document, images, printer) {
       // turn off any sizing
       chain = chain.height(value).width(value);
 
-      let bc = encodeBarcode(document.attributes, attributes);
+      let bc = encodeBarcode(attributes, printer);
       return chain.raw(bc);
     case 'qrcode':
       // turn off any sizing
@@ -250,7 +250,7 @@ function receiptCommand(command, chain, document, images, printer) {
   return chain;
 }
 
-function encodeBarcode(_document, attributes) {
+function encodeBarcode(attributes, printer) {
   let language = printer.language;
   let type = barcodeTypeMap[language][attributes.type.toUpperCase()];
   let position = barcodePositionMap[language][attributes.position];
