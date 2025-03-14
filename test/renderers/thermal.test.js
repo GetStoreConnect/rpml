@@ -180,7 +180,12 @@ describe('Thermal Printer Renderer', () => {
 `;
 
     // Call printReceipt and store the returned encoder
-    encoderInstance = printReceipt(markup, printerModel, mockDevice, MockPrinterEncoder);
+    encoderInstance = printReceipt({
+      markup,
+      printer: printerModel,
+      device: mockDevice,
+      PrinterEncoder: MockPrinterEncoder,
+    });
 
     // Now we verify that the encoder was created correctly
     expect(encoderInstance).to.exist;
@@ -238,7 +243,12 @@ Small text
 `;
 
     // Call printReceipt and store the returned encoder
-    encoderInstance = printReceipt(markup, printerModel, mockDevice, MockPrinterEncoder);
+    encoderInstance = printReceipt({
+      markup,
+      printer: printerModel,
+      device: mockDevice,
+      PrinterEncoder: MockPrinterEncoder,
+    });
     expect(encoderInstance).to.exist;
 
     // Allow time for async operations
@@ -279,7 +289,12 @@ dither=atkinson
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt(markup, printerModel, mockDevice, MockPrinterEncoder);
+    encoderInstance = printReceipt({
+      markup,
+      printer: printerModel,
+      device: mockDevice,
+      PrinterEncoder: MockPrinterEncoder,
+    });
     expect(encoderInstance).to.exist;
 
     // Allow time for async operations
@@ -319,7 +334,12 @@ size=80
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt(markup, printerModel, mockDevice, MockPrinterEncoder);
+    encoderInstance = printReceipt({
+      markup,
+      printer: printerModel,
+      device: mockDevice,
+      PrinterEncoder: MockPrinterEncoder,
+    });
     expect(encoderInstance).to.exist;
 
     // Allow time for async operations
@@ -355,7 +375,12 @@ row=["Product 1", "2", "$10.00"]
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt(markup, printerModel, mockDevice, MockPrinterEncoder);
+    encoderInstance = printReceipt({
+      markup,
+      printer: printerModel,
+      device: mockDevice,
+      PrinterEncoder: MockPrinterEncoder,
+    });
     expect(encoderInstance).to.exist;
 
     // Allow time for async operations
@@ -386,7 +411,12 @@ row=["Product 1", "2", "$10.00"]
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt(markup, printerModel, mockDevice, MockPrinterEncoder);
+    encoderInstance = printReceipt({
+      markup,
+      printer: printerModel,
+      device: mockDevice,
+      PrinterEncoder: MockPrinterEncoder,
+    });
     expect(encoderInstance).to.exist;
 
     // Allow time for async operations
@@ -428,7 +458,12 @@ errorLevel=L
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt(markup, printerModel, mockDevice, MockPrinterEncoder);
+    encoderInstance = printReceipt({
+      markup,
+      printer: printerModel,
+      device: mockDevice,
+      PrinterEncoder: MockPrinterEncoder,
+    });
     expect(encoderInstance).to.exist;
 
     // Allow time for async operations
@@ -454,18 +489,24 @@ errorLevel=L
     const printerModel = printerModels.mPOP;
 
     // Markup with barcode
-    const markup = `{document}
+    const markup = `
+{document}
 {center}
 {barcode
-data="12345678"
-type="CODE128"
-height=50
-position="below"
+  data="12345678"
+  type="CODE128"
+  height=50
+  position="below"
 }
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt(markup, printerModel, mockDevice, MockPrinterEncoder);
+    encoderInstance = printReceipt({
+      markup,
+      printer: printerModel,
+      device: mockDevice,
+      PrinterEncoder: MockPrinterEncoder,
+    });
     expect(encoderInstance).to.exist;
 
     // Allow time for async operations
@@ -520,7 +561,12 @@ Total: $32.97
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt(markup, printerModel, mockDevice, MockPrinterEncoder);
+    encoderInstance = printReceipt({
+      markup,
+      printer: printerModel,
+      device: mockDevice,
+      PrinterEncoder: MockPrinterEncoder,
+    });
     expect(encoderInstance).to.exist;
 
     // Allow time for async operations

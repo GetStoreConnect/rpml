@@ -55,7 +55,7 @@ const imageModes = {
 };
 
 // Designed to work with PrinterEncoder from @point-of-sale/receipt-printer-encoder
-export function printReceipt(markup, printer, device, PrinterEncoder) {
+export function printReceipt({ markup, printer, device, PrinterEncoder }) {
   printer.chars = parseInt(printer.chars);
   printer.dots = parseInt(printer.dots);
 
@@ -75,7 +75,7 @@ export function printReceipt(markup, printer, device, PrinterEncoder) {
   });
 
   loadImages(commands).then((images) => {
-    sendReceiptCommands(commands, doc, images, printer, device, encoder);
+    sendReceiptCommands({ commands, images, printer, device, encoder });
   });
 
   return encoder;
@@ -93,21 +93,21 @@ function endCommands() {
   ];
 }
 
-function sendReceiptCommands(commands, doc, images, printer, device, encoder) {
-  let chain = encoder.initialize();
+function sendReceiptCommands({ commands, images, printer, device, encoder }) {
+  encoder = encoder.initialize();
 
   commands.push(...endCommands());
 
   for (const command of commands) {
-    chain = receiptCommand(command, chain, doc, images, printer);
+    encoder = receiptCommand({ command, encoder, images, printer });
   }
 
-  device.transferOut(1, chain.encode()).catch((error) => {
+  device.transferOut(1, encoder.encode()).catch((error) => {
     console.log(`printReceipt: ${error}`);
   });
 }
 
-function receiptCommand(command, chain, document, images, printer) {
+function receiptCommand({ command, encoder, images, printer }) {
   const name = command.name;
   const attributes = command.attributes;
   const value = command.value;
@@ -115,17 +115,17 @@ function receiptCommand(command, chain, document, images, printer) {
 
   switch (name) {
     case 'center':
-      return chain.align('center');
+      return encoder.align('center');
     case 'left':
-      return chain.align('left');
+      return encoder.align('left');
     case 'right':
-      return chain.align('right');
+      return encoder.align('right');
     case 'image':
       // turn off any sizing
-      chain = chain.height(value).width(value);
+      encoder = encoder.height(value).width(value);
 
       let image = images.shift();
-      if (!image) return chain;
+      if (!image) return encoder;
 
       let width = attributes.width;
       let height = attributes.height;
@@ -143,47 +143,47 @@ function receiptCommand(command, chain, document, images, printer) {
         height = parseInt(height / 24) * 24;
       }
 
-      return chain.image(image, width, height, attributes.dither);
+      return encoder.image(image, width, height, attributes.dither);
     case 'line':
-      return chain.line(value || '');
+      return encoder.line(value || '');
     case 'rule':
       // turn off any sizing
-      chain = chain.height(value).width(value);
+      encoder = encoder.height(value).width(value);
 
       if (attributes.line == 'dashed') {
         let character = attributes.style == 'double' ? '=' : '-';
 
-        return chain.line(character.repeat(attributes.width || printer.chars));
+        return encoder.line(character.repeat(attributes.width || printer.chars));
       } else {
-        return chain.rule({ width: attributes.width || printer.chars, style: attributes.style });
+        return encoder.rule({ width: attributes.width || printer.chars, style: attributes.style });
       }
     case 'text':
-      return chain.text(value || '');
+      return encoder.text(value || '');
     case 'bold':
-      return chain.bold(!off);
+      return encoder.bold(!off);
     case 'underline':
-      return chain.underline(!off);
+      return encoder.underline(!off);
     case 'invert':
-      return chain.invert(!off);
+      return encoder.invert(!off);
     case 'italic':
-      return chain.italic(!off);
+      return encoder.italic(!off);
     case 'small':
-      if (!off) return chain.size('small');
-      else return chain.size('normal');
+      if (!off) return encoder.size('small');
+      else return encoder.size('normal');
     case 'size':
-      return chain.height(value).width(value);
+      return encoder.height(value).width(value);
     case 'width':
     case 'barcode':
       // turn off any sizing
-      chain = chain.height(value).width(value);
+      encoder = encoder.height(value).width(value);
 
-      let bc = encodeBarcode(attributes, printer);
-      return chain.raw(bc);
+      const barcode = encodeBarcode({ attributes, printer });
+      return encoder.raw(barcode);
     case 'qrcode':
       // turn off any sizing
-      chain = chain.height(value).width(value);
+      encoder = encoder.height(value).width(value);
 
-      return chain.qrcode(
+      return encoder.qrcode(
         attributes.data,
         attributes.model,
         attributes.size,
@@ -191,7 +191,7 @@ function receiptCommand(command, chain, document, images, printer) {
       );
     case 'table':
       // turn off any sizing
-      chain = chain.height(value).width(value);
+      encoder = encoder.height(value).width(value);
 
       const margin = attributes.margin || 0;
       let columns = [];
@@ -238,19 +238,19 @@ function receiptCommand(command, chain, document, images, printer) {
         });
       }
 
-      return chain.table(columns, attributes.rows);
+      return encoder.table(columns, attributes.rows);
     case 'bottom-margin':
-      return chain.newline().newline().newline().newline().newline().newline();
+      return encoder.newline().newline().newline().newline().newline().newline();
     case 'cut':
-      return chain.cut(value);
+      return encoder.cut(value);
     default:
       console.log(`Unknown command type: ${name}`);
   }
 
-  return chain;
+  return encoder;
 }
 
-function encodeBarcode(attributes, printer) {
+function encodeBarcode({ attributes, printer }) {
   let language = printer.language;
   let type = barcodeTypeMap[language][attributes.type.toUpperCase()];
   let position = barcodePositionMap[language][attributes.position];
