@@ -108,12 +108,7 @@ function sendReceiptCommands({ commands, images, printer, device, encoder }) {
 }
 
 function receiptCommand({ command, encoder, images, printer }) {
-  const name = command.name;
-  const attributes = command.attributes;
-  const value = command.value;
-  const off = command.off === true;
-
-  switch (name) {
+  switch (command.name) {
     case 'document':
       return encoder; // Do nothing for document command
     case 'center':
@@ -122,137 +117,156 @@ function receiptCommand({ command, encoder, images, printer }) {
       return encoder.align('left');
     case 'right':
       return encoder.align('right');
-    case 'image':
-      // turn off any sizing
-      encoder = encoder.height(value).width(value);
-
-      let image = images.shift();
-      if (!image) return encoder;
-
-      let width = attributes.width;
-      let height = attributes.height;
-      let size = attributes.size;
-      if (size) {
-        // size is a percentage of the width
-        // calculate the width based on the percentage of printer width (dots)
-        width = parseInt((size / 100) * printer.dots);
-
-        // calculate the height based on the aspect ratio of the image
-        height = parseInt((image.height / image.width) * width);
-
-        // ensure both width and height are multiples of 24
-        width = parseInt(width / 24) * 24;
-        height = parseInt(height / 24) * 24;
-      }
-
-      return encoder.image(image, width, height, attributes.dither);
-    case 'line':
-      return encoder.line(value || '');
-    case 'rule':
-      // turn off any sizing
-      encoder = encoder.height(value).width(value);
-
-      if (attributes.line == 'dashed') {
-        let character = attributes.style == 'double' ? '=' : '-';
-
-        return encoder.line(character.repeat(attributes.width || printer.chars));
-      } else {
-        return encoder.rule({ width: attributes.width || printer.chars, style: attributes.style });
-      }
-    case 'text':
-      return encoder.text(value || '');
     case 'bold':
-      return encoder.bold(!off);
+      return encoder.bold(!command.off);
     case 'underline':
-      return encoder.underline(!off);
+      return encoder.underline(!command.off);
     case 'invert':
-      return encoder.invert(!off);
+      return encoder.invert(!command.off);
     case 'italic':
-      return encoder.italic(!off);
+      return encoder.italic(!command.off);
     case 'small':
-      if (!off) return encoder.size('small');
-      else return encoder.size('normal');
+      return command.off ? encoder.size('normal') : encoder.size('small');
     case 'size':
-      return encoder.height(value).width(value);
-    case 'width':
+      return encoder.width(command.value).height(command.value);
+    case 'text':
+      return encoder.text(command.value || '');
+    case 'line':
+      return encoder.line(command.value || '');
+
+    case 'image':
+      encoder = clearSize({ encoder });
+      return encodeImage({ command, encoder, images, printer });
+
+    case 'rule':
+      encoder = clearSize({ encoder });
+      return encodeRule({ command, encoder, printer });
+
     case 'barcode':
-      // turn off any sizing
-      encoder = encoder.height(value).width(value);
+      encoder = clearSize({ encoder });
+      return encoder.raw(buildBarcode({ command, printer }));
 
-      const barcode = encodeBarcode({ attributes, printer });
-      return encoder.raw(barcode);
     case 'qrcode':
-      // turn off any sizing
-      encoder = encoder.height(value).width(value);
+      encoder = clearSize({ encoder });
+      return encodeQrCode({ command, encoder });
 
-      return encoder.qrcode(
-        attributes.data,
-        attributes.model,
-        attributes.size,
-        attributes.errorLevel
-      );
     case 'table':
-      // turn off any sizing
-      encoder = encoder.height(value).width(value);
+      encoder = clearSize({ encoder });
+      const table = buildTable({ command, printer });
+      return encoder.table(table.columns, table.rows);
 
-      const margin = attributes.margin || 0;
-      let columns = [];
-      let widthAvailable = printer.chars;
-      let splitWidth = parseInt(printer.chars / attributes.cols);
-
-      for (var i = 0; i < attributes.cols; i++) {
-        let align = attributes.align ? attributes.align[i] : 'left';
-        let width;
-        let colMargin = margin;
-
-        // final column doesn't need margin
-        if (i + 1 == attributes.cols) {
-          colMargin = 0;
-        }
-
-        if (attributes.width) {
-          if (attributes.width[i] === undefined) {
-            // no more widths are set so split remaining width evenly
-            width = parseInt(widthAvailable / (attributes.cols - i)) - colMargin;
-          } else if (attributes.width[i] === '*') {
-            // width is set to wildcard (*) so expand to fill remaining width
-            let remainingWidths = attributes.width.slice(i + 1);
-            if (remainingWidths.length > 0) {
-              let remainingWidth = remainingWidths.reduce((total, item) => total + item);
-              let remainingMargin = (attributes.cols - i - 1) * margin;
-              width = widthAvailable - remainingWidth - remainingMargin;
-            } else {
-              width = widthAvailable;
-            }
-          } else {
-            width = attributes.width[i];
-          }
-        } else {
-          // no widths set so split evenly, factoring in margin
-          width = splitWidth - colMargin;
-        }
-        widthAvailable -= width + colMargin;
-
-        columns.push({
-          align: align,
-          marginRight: colMargin,
-          width: width,
-        });
-      }
-
-      return encoder.table(columns, attributes.rows);
     case 'bottom-margin':
       return encoder.newline().newline().newline().newline().newline().newline();
+
     case 'cut':
-      return encoder.cut(value);
+      return encoder.cut(command.value);
+
     default:
-      console.log(`Unknown command type: ${name}`);
+      console.log(`Unknown command type: ${command.name}`);
   }
 
   return encoder;
 }
 
-function encodeBarcode({ attributes, printer }) {
+function clearSize({ encoder }) {
+  return encoder.height(undefined).width(undefined);
+}
+
+function encodeRule({ command, encoder, printer }) {
+  const attributes = command.attributes;
+  if (attributes.line == 'dashed') {
+    let character = attributes.style == 'double' ? '=' : '-';
+
+    return encoder.line(character.repeat(attributes.width || printer.chars));
+  } else {
+    return encoder.rule({ width: attributes.width || printer.chars, style: attributes.style });
+  }
+}
+
+function encodeQrCode({ command, encoder }) {
+  const attributes = command.attributes;
+  return encoder.qrcode(attributes.data, attributes.model, attributes.size, attributes.errorLevel);
+}
+
+function encodeImage({ command, encoder, images, printer }) {
+  const attributes = command.attributes;
+
+  const image = images.shift();
+  if (!image) {
+    return encoder;
+  }
+
+  let width = attributes.width;
+  let height = attributes.height;
+
+  if (attributes.size) {
+    // size is a percentage of the width
+    // calculate the width based on the percentage of printer width (dots)
+    width = parseInt((attributes.size / 100) * printer.dots);
+
+    // calculate the height based on the aspect ratio of the image
+    height = parseInt((image.height / image.width) * width);
+
+    // ensure both width and height are multiples of 24
+    width = parseInt(width / 24) * 24;
+    height = parseInt(height / 24) * 24;
+  }
+
+  return encoder.image(image, width, height, attributes.dither);
+}
+
+function buildTable({ command, printer }) {
+  const attributes = command.attributes;
+  const margin = attributes.margin || 0;
+  const splitWidth = parseInt(printer.chars / attributes.cols);
+  const columns = [];
+  let widthAvailable = printer.chars;
+
+  for (let i = 0; i < attributes.cols; i++) {
+    const align = attributes.align ? attributes.align[i] : 'left';
+    let width;
+    let colMargin = margin;
+
+    // final column doesn't need margin
+    if (i + 1 == attributes.cols) {
+      colMargin = 0;
+    }
+
+    if (attributes.width) {
+      if (attributes.width[i] === undefined) {
+        // no more widths are set so split remaining width evenly
+        width = parseInt(widthAvailable / (attributes.cols - i)) - colMargin;
+      } else if (attributes.width[i] === '*') {
+        // width is set to wildcard (*) so expand to fill remaining width
+        let remainingWidths = attributes.width.slice(i + 1);
+        if (remainingWidths.length > 0) {
+          let remainingWidth = remainingWidths.reduce((total, item) => total + item);
+          let remainingMargin = (attributes.cols - i - 1) * margin;
+          width = widthAvailable - remainingWidth - remainingMargin;
+        } else {
+          width = widthAvailable;
+        }
+      } else {
+        width = attributes.width[i];
+      }
+    } else {
+      // no widths set so split evenly, factoring in margin
+      width = splitWidth - colMargin;
+    }
+    widthAvailable -= width + colMargin;
+
+    columns.push({
+      align: align,
+      marginRight: colMargin,
+      width: width,
+    });
+  }
+
+  return { columns, rows: attributes.rows };
+}
+
+function buildBarcode({ command, printer }) {
+  const attributes = command.attributes;
   let language = printer.language;
   let type = barcodeTypeMap[language][attributes.type.toUpperCase()];
   let position = barcodePositionMap[language][attributes.position];
