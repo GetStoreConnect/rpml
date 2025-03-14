@@ -67,7 +67,7 @@ export function printReceipt(markup, printer, device, PrinterEncoder) {
   // remove document from commands
   commands.splice(documentIndex, 1);
 
-  encoder = new PrinterEncoder({
+  const encoder = new PrinterEncoder({
     language: printer.language,
     width: printer.chars,
     wordWrap: doc.attributes.wordWrap,
@@ -75,8 +75,10 @@ export function printReceipt(markup, printer, device, PrinterEncoder) {
   });
 
   loadImages(commands).then((images) => {
-    sendReceiptCommands(commands, doc, images, printer, device);
+    sendReceiptCommands(commands, doc, images, printer, device, encoder);
   });
+
+  return encoder;
 }
 
 function endCommands() {
@@ -91,7 +93,7 @@ function endCommands() {
   ];
 }
 
-function sendReceiptCommands(commands, doc, images, printer, device) {
+function sendReceiptCommands(commands, doc, images, printer, device, encoder) {
   let chain = encoder.initialize();
 
   commands.push(...endCommands());
