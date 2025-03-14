@@ -188,7 +188,7 @@ function encodeQrCode({ command, encoder }) {
 function encodeImage({ command, encoder, images, printer }) {
   const attributes = command.attributes;
 
-  const image = images.shift();
+  const image = images[attributes.src];
   if (!image) {
     return encoder;
   }
@@ -264,9 +264,9 @@ function buildTable({ command, printer }) {
 
 function buildBarcode({ command, printer }) {
   const attributes = command.attributes;
-  let language = printer.language;
-  let type = barcodeTypeMap[language][attributes.type.toUpperCase()];
-  let position = barcodePositionMap[language][attributes.position];
+  const language = printer.language;
+  const type = barcodeTypeMap[language][attributes.type.toUpperCase()];
+  const position = barcodePositionMap[language][attributes.position];
 
   let barcodeData = attributes.data.split('').map(function (c) {
     return c.charCodeAt(0);
@@ -317,16 +317,18 @@ function buildBarcode({ command, printer }) {
 }
 
 async function loadImages({ commands, createImage }) {
-  let images = [];
+  let images = {};
 
   for (const command of commands) {
     if (command.name == 'image') {
-      images.push(
-        await loadImage({ src: command.attributes.src, createImage }).catch((error) => {
+      const src = command.attributes.src;
+      if (!images[src]) {
+        try {
+          images[src] = await loadImage({ src, createImage });
+        } catch (error) {
           console.log(error);
-          return null;
-        })
-      );
+        }
+      }
     }
   }
 
@@ -339,8 +341,8 @@ function loadImage({ src, createImage }) {
     image.crossOrigin = 'anonymous';
     image.onload = () => resolve(image);
     image.onerror = (error) => {
-      reject("couldn't load image");
       console.log(error);
+      reject("couldn't load image");
     };
     image.src = src;
   });
