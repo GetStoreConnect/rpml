@@ -255,8 +255,22 @@ Small text
     expect(device.transferOutCalls.length).to.equal(1);
   });
 
-  it('handles image loading errors gracefully', async () => {
-    const markup = `
+  describe('stubbing console.error', () => {
+    let originalConsoleError;
+    let errorOutput = [];
+
+    beforeEach(function () {
+      originalConsoleError = console.error;
+      console.error = (...args) => errorOutput.push(args.join(' '));
+    });
+
+    afterEach(function () {
+      console.error = originalConsoleError;
+      errorOutput = [];
+    });
+
+    it('handles image loading errors gracefully', async () => {
+      const markup = `
 {center}
 {image
   src="https://example.com/nonexistent.png"
@@ -265,22 +279,25 @@ Small text
 {line}
 This should still render`;
 
-    const device = new MockDevice();
-    const encoder = await printReceipt({
-      markup,
-      printer: printerModels.mPOP,
-      device,
-      createImage: createFailingMockImage,
-      PrinterEncoder: MockPrinterEncoder,
+      const device = new MockDevice();
+      const encoder = await printReceipt({
+        markup,
+        printer: printerModels.mPOP,
+        device,
+        createImage: createFailingMockImage,
+        PrinterEncoder: MockPrinterEncoder,
+      });
+      expect(encoder).to.exist;
+
+      expect(errorOutput).to.include('Error: Mock image load error');
+
+      expect(device.transferOutCalls.length).to.equal(1);
+
+      const commands = encoder.commands;
+
+      // The line command should still be processed despite image error
+      expect(commands).to.include('line:This should still render');
     });
-    expect(encoder).to.exist;
-
-    expect(device.transferOutCalls.length).to.equal(1);
-
-    const commands = encoder.commands;
-
-    // The line command should still be processed despite image error
-    expect(commands).to.include('line:This should still render');
   });
 
   it('renders tables correctly', async () => {

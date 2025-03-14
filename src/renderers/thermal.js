@@ -326,7 +326,7 @@ async function loadImages({ commands, createImage }) {
         try {
           images[src] = await loadImage({ src, createImage });
         } catch (error) {
-          console.log(error);
+          console.error(error);
         }
       }
     }
@@ -340,10 +340,7 @@ function loadImage({ src, createImage }) {
     let image = createImage();
     image.crossOrigin = 'anonymous';
     image.onload = () => resolve(image);
-    image.onerror = (error) => {
-      console.log(error);
-      reject("couldn't load image");
-    };
+    image.onerror = (error) => reject(error);
     image.src = src;
   });
 }
