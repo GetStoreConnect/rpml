@@ -149,13 +149,11 @@ describe('Thermal Printer Renderer', () => {
   }
 
   it('initializes the encoder with correct printer settings', (done) => {
-    // Simple markup with document command
     const markup = `
 {document word-wrap=true}
 {center}
 {line}
-Test Receipt
-`;
+Test Receipt`;
 
     const device = new MockDevice();
     const encoder = printReceipt({
@@ -166,7 +164,6 @@ Test Receipt
       PrinterEncoder: MockPrinterEncoder,
     });
 
-    // Now we verify that the encoder was created correctly
     expect(encoder).to.exist;
     expect(encoder.options.language).to.equal('star-prnt');
     expect(encoder.options.width).to.equal(32);
@@ -183,7 +180,6 @@ Test Receipt
           console.log('Debug: No transferOut calls were made');
         }
 
-        // Verify commands were added to the chain
         expect(encoder.commands).to.include('initialize');
         expect(encoder.commands).to.include('align:center');
         expect(encoder.commands).to.include('line:Test Receipt');
@@ -197,9 +193,7 @@ Test Receipt
   });
 
   it('handles text formatting commands correctly', (done) => {
-    // Markup with text formatting
     const markup = `
-{document}
 {bold}
 Bold text
 {endBold}
@@ -214,10 +208,8 @@ Inverted text
 {endInvert}
 {small}
 Small text
-{endSmall}
-`;
+{endSmall}`;
 
-    // Call printReceipt and store the returned encoder
     const device = new MockDevice();
     const encoder = printReceipt({
       markup,
@@ -252,17 +244,14 @@ Small text
   });
 
   it('renders images correctly', (done) => {
-    // Markup with image
-    const markup = `{document}
+    const markup = `
 {center}
 {image
-src="https://example.com/test.png"
-size=80
-dither=atkinson
-}
-`;
+  src="https://example.com/test.png"
+  size=80
+  dither=atkinson
+}`;
 
-    // Call printReceipt
     const device = new MockDevice();
     const encoder = printReceipt({
       markup,
@@ -278,7 +267,6 @@ dither=atkinson
       try {
         const commands = encoder.commands;
 
-        // Find the image command
         const imageCommand = commands.find((cmd) => cmd.startsWith('image:'));
         expect(imageCommand).to.exist;
         expect(imageCommand).to.include('atkinson');
@@ -294,17 +282,15 @@ dither=atkinson
   });
 
   it('handles image loading errors gracefully', (done) => {
-    // Markup with image that will fail to load
-    const markup = `{document}
+    const markup = `
 {center}
 {image
-src="https://example.com/nonexistent.png"
-size=80
+  src="https://example.com/nonexistent.png"
+  size=80
 }
-{line}This should still render
-`;
+{line}
+This should still render`;
 
-    // Call printReceipt
     const device = new MockDevice();
     const encoder = printReceipt({
       markup,
@@ -333,19 +319,16 @@ size=80
   });
 
   it('renders tables correctly', (done) => {
-    // Markup with table
-    const markup = `{document}
+    const markup = `
 {table
-cols=3
-margin=1
-align=[left,center,right]
-width=[10,10,*]
-row=["Item", "Qty", "Price"]
-row=["Product 1", "2", "$10.00"]
-}
-`;
+  cols=3
+  margin=1
+  align=[left,center,right]
+  width=[10,10,*]
+  row=["Item", "Qty", "Price"]
+  row=["Product 1", "2", "$10.00"]
+}`;
 
-    // Call printReceipt
     const device = new MockDevice();
     const encoder = printReceipt({
       markup,
@@ -361,7 +344,6 @@ row=["Product 1", "2", "$10.00"]
       try {
         const commands = encoder.commands;
 
-        // Find the table command
         const tableCommand = commands.find((cmd) => cmd.startsWith('table:'));
         expect(tableCommand).to.exist;
         expect(tableCommand).to.include('3x2'); // 3 columns, 2 rows
@@ -374,14 +356,11 @@ row=["Product 1", "2", "$10.00"]
   });
 
   it('renders rules with different styles', (done) => {
-    // Markup with different rule styles
-    const markup = `{document}
+    const markup = `
 {rule line=solid width=32}
 {rule line=dashed width=20}
-{rule line=dashed style=double width=10}
-`;
+{rule line=dashed style=double width=10}`;
 
-    // Call printReceipt
     const device = new MockDevice();
     const encoder = printReceipt({
       markup,
@@ -397,12 +376,10 @@ row=["Product 1", "2", "$10.00"]
       try {
         const commands = encoder.commands;
 
-        // Find rule commands
         const solidRule = commands.find((cmd) => cmd.startsWith('rule:'));
         expect(solidRule).to.exist;
         expect(solidRule).to.include('"width":32');
 
-        // Check if dashed rules were rendered
         const dashedLine = commands.find((cmd) => cmd === 'line:--------------------');
         expect(dashedLine).to.exist;
 
@@ -417,18 +394,15 @@ row=["Product 1", "2", "$10.00"]
   });
 
   it('renders QR codes correctly', (done) => {
-    // Markup with QR code
-    const markup = `{document}
+    const markup = `
 {center}
 {qrcode
-data="https://example.com"
-size=6
-model=2
-errorLevel=L
-}
-`;
+  data="https://example.com"
+  size=6
+  model=2
+  errorLevel=L
+}`;
 
-    // Call printReceipt
     const device = new MockDevice();
     const encoder = printReceipt({
       markup,
@@ -444,7 +418,6 @@ errorLevel=L
       try {
         const commands = encoder.commands;
 
-        // Find the QR code command
         const qrCommand = commands.find((cmd) => cmd.startsWith('qrcode:'));
         expect(qrCommand).to.exist;
         expect(qrCommand).to.include('https://example.com');
@@ -459,19 +432,15 @@ errorLevel=L
   });
 
   it('handles barcodes correctly', (done) => {
-    // Markup with barcode
     const markup = `
-{document}
 {center}
 {barcode
   data="12345678"
   type="CODE128"
   height=50
   position="below"
-}
-`;
+}`;
 
-    // Call printReceipt
     const device = new MockDevice();
     const encoder = printReceipt({
       markup,
@@ -486,8 +455,6 @@ errorLevel=L
     setTimeout(() => {
       try {
         const commands = encoder.commands;
-
-        // Find the raw command for barcode
         const barcodeCommand = commands.find((cmd) => cmd.startsWith('raw:'));
         expect(barcodeCommand).to.exist;
 
@@ -499,9 +466,7 @@ errorLevel=L
   });
 
   it('handles complex receipts with multiple command types', (done) => {
-    // Complex receipt markup
     const markup = `
-{document word-wrap=true}
 {center}
 {bold}
 RECEIPT
@@ -528,8 +493,7 @@ RECEIPT
 Total: $32.97
 {endBold}
 {center}
-{qrcode data="receipt-id-123" size=4}
-`;
+{qrcode data="receipt-id-123" size=4}`;
 
     const device = new MockDevice();
     const encoder = printReceipt({
@@ -548,24 +512,19 @@ Total: $32.97
 
         const commands = encoder.commands;
 
-        // Verify various commands were added in order
         expect(commands).to.include('align:center');
         expect(commands).to.include('bold:true');
         expect(commands).to.include('line:RECEIPT');
         expect(commands).to.include('bold:false');
-
-        // Check for tables
-        const tableCommands = commands.filter((cmd) => cmd.startsWith('table:'));
-        expect(tableCommands).to.have.length(2);
-
-        // Check for alignment changes
         expect(commands).to.include('align:right');
         expect(commands).to.include('align:center');
 
-        // Check for QR code
-        expect(commands.some((cmd) => cmd.startsWith('qrcode:receipt-id-123'))).to.be.true;
+        const tableCommands = commands.filter((cmd) => cmd.startsWith('table:'));
+        expect(tableCommands).to.have.length(2);
 
-        // Check for final commands
+        const qrCommands = commands.filter((cmd) => cmd.startsWith('qrcode:receipt-id-123'));
+        expect(qrCommands).to.have.length(1);
+
         expect(commands).to.include('cut:partial');
 
         done();

@@ -62,15 +62,13 @@ export function printReceipt({ markup, printer, device, createImage, PrinterEnco
   let commands = parse(markup);
 
   const documentIndex = commands.findIndex((i) => i.name == 'document');
-  const doc = commands[documentIndex];
-
-  // remove document from commands
-  commands.splice(documentIndex, 1);
+  const documentCommand = commands[documentIndex];
+  const wordWrap = documentCommand ? documentCommand.attributes.wordWrap : false;
 
   const encoder = new PrinterEncoder({
     language: printer.language,
     width: printer.chars,
-    wordWrap: doc.attributes.wordWrap,
+    wordWrap,
     imageMode: imageModes[printer.language],
   });
 
@@ -114,6 +112,8 @@ function receiptCommand({ command, encoder, images, printer }) {
   const off = command.off === true;
 
   switch (name) {
+    case 'document':
+      return encoder; // Do nothing for document command
     case 'center':
       return encoder.align('center');
     case 'left':
