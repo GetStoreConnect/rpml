@@ -70,7 +70,7 @@ describe('Thermal Printer Renderer', () => {
       return this;
     }
 
-    image(img, width, height, dither) {
+    image(_img, width, height, dither) {
       this.commands.push(`image:${width}x${height}:${dither || 'none'}`);
       return this;
     }
@@ -107,72 +107,56 @@ describe('Thermal Printer Renderer', () => {
     }
   }
 
-  // Mock device with native JavaScript instead of sinon
-  let mockDevice;
-  let transferOutCalls;
-  let originalImage;
+  class MockImage {
+    constructor() {
+      this.width = 240;
+      this.height = 120;
+      this.onload = null;
+      this.onerror = null;
+      this.crossOrigin = null;
+    }
+
+    set src(value) {
+      this._src = value;
+      // For testing, trigger the onload or onerror callback synchronously
+      setTimeout(() => {
+        if (mockLoadImageSuccess && this.onload) {
+          this.onload();
+        } else if (!mockLoadImageSuccess && this.onerror) {
+          this.onerror(new Error('Mock image load error'));
+        }
+      }, 5);
+    }
+
+    get src() {
+      return this._src;
+    }
+  }
+
+  const createMockImage = () => new MockImage();
+
+  // Mock device with native JavaScript
   let mockLoadImageSuccess = true;
-  let encoderInstance;
+  let transferOutCalls;
+
+  const mockDevice = {
+    transferOut: (endpoint, data) => {
+      transferOutCalls.push({ endpoint, data });
+      return Promise.resolve(true);
+    },
+  };
 
   beforeEach(() => {
     transferOutCalls = [];
-    mockDevice = {
-      transferOut: (endpoint, data) => {
-        transferOutCalls.push({ endpoint, data });
-        return Promise.resolve(true);
-      },
-    };
-
-    // Save the original global Image if it exists
-    if (typeof global.Image !== 'undefined') {
-      originalImage = global.Image;
-    }
-
-    // Create a mock Image class
-    global.Image = class MockImage {
-      constructor() {
-        this.width = 240;
-        this.height = 120;
-        this.onload = null;
-        this.onerror = null;
-        this.crossOrigin = null;
-      }
-
-      set src(value) {
-        this._src = value;
-        // For testing, trigger the onload or onerror callback synchronously
-        setTimeout(() => {
-          if (mockLoadImageSuccess && this.onload) {
-            this.onload();
-          } else if (!mockLoadImageSuccess && this.onerror) {
-            this.onerror(new Error('Mock image load error'));
-          }
-        }, 5);
-      }
-
-      get src() {
-        return this._src;
-      }
-    };
   });
 
   afterEach(() => {
-    // Restore the original global Image if it existed
-    if (originalImage) {
-      global.Image = originalImage;
-    } else {
-      delete global.Image;
-    }
-
     // Reset mock state
     transferOutCalls = [];
     mockLoadImageSuccess = true;
   });
 
   it('initializes the encoder with correct printer settings', (done) => {
-    // Set up printer model
-    const printerModel = printerModels.mPOP;
-
     // Simple markup with document command
     const markup = `{document word-wrap=true}
 {center}
@@ -180,18 +164,19 @@ describe('Thermal Printer Renderer', () => {
 `;
 
     // Call printReceipt and store the returned encoder
-    encoderInstance = printReceipt({
+    const encoder = printReceipt({
       markup,
-      printer: printerModel,
+      printer: printerModels.mPOP,
       device: mockDevice,
+      createImage: createMockImage,
       PrinterEncoder: MockPrinterEncoder,
     });
 
     // Now we verify that the encoder was created correctly
-    expect(encoderInstance).to.exist;
-    expect(encoderInstance.options.language).to.equal('star-prnt');
-    expect(encoderInstance.options.width).to.equal(32);
-    expect(encoderInstance.options.wordWrap).to.be.true;
+    expect(encoder).to.exist;
+    expect(encoder.options.language).to.equal('star-prnt');
+    expect(encoder.options.width).to.equal(32);
+    expect(encoder.options.wordWrap).to.be.true;
 
     // Increase the timeout to give more time for async operations
     setTimeout(() => {
@@ -206,22 +191,19 @@ describe('Thermal Printer Renderer', () => {
         }
 
         // Verify commands were added to the chain
-        expect(encoderInstance.commands).to.include('initialize');
-        expect(encoderInstance.commands).to.include('align:center');
-        expect(encoderInstance.commands).to.include('line:Test Receipt');
-        expect(encoderInstance.commands).to.include('cut:partial');
+        expect(encoder.commands).to.include('initialize');
+        expect(encoder.commands).to.include('align:center');
+        expect(encoder.commands).to.include('line:Test Receipt');
+        expect(encoder.commands).to.include('cut:partial');
 
         done();
       } catch (e) {
         done(e);
       }
-    }, 200); // Increased timeout
+    }, 50);
   });
 
   it('handles text formatting commands correctly', (done) => {
-    // Set up printer model
-    const printerModel = printerModels['TM-T88IV'];
-
     // Markup with text formatting
     const markup = `
 {document}
@@ -243,18 +225,19 @@ Small text
 `;
 
     // Call printReceipt and store the returned encoder
-    encoderInstance = printReceipt({
+    const encoder = printReceipt({
       markup,
-      printer: printerModel,
+      printer: printerModels['TM-T88IV'],
       device: mockDevice,
+      createImage: createMockImage,
       PrinterEncoder: MockPrinterEncoder,
     });
-    expect(encoderInstance).to.exist;
+    expect(encoder).to.exist;
 
     // Allow time for async operations
     setTimeout(() => {
       try {
-        const commands = encoderInstance.commands;
+        const commands = encoder.commands;
 
         expect(commands).to.include('bold:true');
         expect(commands).to.include('bold:false');
@@ -271,13 +254,10 @@ Small text
       } catch (e) {
         done(e);
       }
-    }, 100);
+    }, 50);
   });
 
   it('renders images correctly', (done) => {
-    // Set up printer model
-    const printerModel = printerModels.mPOP;
-
     // Markup with image
     const markup = `{document}
 {center}
@@ -289,18 +269,19 @@ dither=atkinson
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt({
+    const encoder = printReceipt({
       markup,
-      printer: printerModel,
+      printer: printerModels.mPOP,
       device: mockDevice,
+      createImage: createMockImage,
       PrinterEncoder: MockPrinterEncoder,
     });
-    expect(encoderInstance).to.exist;
+    expect(encoder).to.exist;
 
     // Allow time for async operations
     setTimeout(() => {
       try {
-        const commands = encoderInstance.commands;
+        const commands = encoder.commands;
 
         // Find the image command
         const imageCommand = commands.find((cmd) => cmd.startsWith('image:'));
@@ -314,14 +295,12 @@ dither=atkinson
       } catch (e) {
         done(e);
       }
-    }, 100);
+    }, 50);
   });
 
   it('handles image loading errors gracefully', (done) => {
     // Set up to simulate image load failure
     mockLoadImageSuccess = false;
-
-    const printerModel = printerModels.mPOP;
 
     // Markup with image that will fail to load
     const markup = `{document}
@@ -334,20 +313,21 @@ size=80
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt({
+    const encoder = printReceipt({
       markup,
-      printer: printerModel,
+      printer: printerModels.mPOP,
       device: mockDevice,
+      createImage: createMockImage,
       PrinterEncoder: MockPrinterEncoder,
     });
-    expect(encoderInstance).to.exist;
+    expect(encoder).to.exist;
 
     // Allow time for async operations
     setTimeout(() => {
       try {
         expect(transferOutCalls.length).to.equal(1);
 
-        const commands = encoderInstance.commands;
+        const commands = encoder.commands;
 
         // The line command should still be processed despite image error
         expect(commands).to.include('line:This should still render');
@@ -356,12 +336,10 @@ size=80
       } catch (e) {
         done(e);
       }
-    }, 100);
+    }, 50);
   });
 
   it('renders tables correctly', (done) => {
-    const printerModel = printerModels['TM-T88IV'];
-
     // Markup with table
     const markup = `{document}
 {table
@@ -375,18 +353,19 @@ row=["Product 1", "2", "$10.00"]
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt({
+    const encoder = printReceipt({
       markup,
-      printer: printerModel,
+      printer: printerModels['TM-T88IV'],
       device: mockDevice,
+      createImage: createMockImage,
       PrinterEncoder: MockPrinterEncoder,
     });
-    expect(encoderInstance).to.exist;
+    expect(encoder).to.exist;
 
     // Allow time for async operations
     setTimeout(() => {
       try {
-        const commands = encoderInstance.commands;
+        const commands = encoder.commands;
 
         // Find the table command
         const tableCommand = commands.find((cmd) => cmd.startsWith('table:'));
@@ -397,12 +376,10 @@ row=["Product 1", "2", "$10.00"]
       } catch (e) {
         done(e);
       }
-    }, 100);
+    }, 50);
   });
 
   it('renders rules with different styles', (done) => {
-    const printerModel = printerModels.mPOP;
-
     // Markup with different rule styles
     const markup = `{document}
 {rule line=solid width=32}
@@ -411,18 +388,19 @@ row=["Product 1", "2", "$10.00"]
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt({
+    const encoder = printReceipt({
       markup,
-      printer: printerModel,
+      printer: printerModels.mPOP,
       device: mockDevice,
+      createImage: createMockImage,
       PrinterEncoder: MockPrinterEncoder,
     });
-    expect(encoderInstance).to.exist;
+    expect(encoder).to.exist;
 
     // Allow time for async operations
     setTimeout(() => {
       try {
-        const commands = encoderInstance.commands;
+        const commands = encoder.commands;
 
         // Find rule commands
         const solidRule = commands.find((cmd) => cmd.startsWith('rule:'));
@@ -440,12 +418,10 @@ row=["Product 1", "2", "$10.00"]
       } catch (e) {
         done(e);
       }
-    }, 100);
+    }, 50);
   });
 
   it('renders QR codes correctly', (done) => {
-    const printerModel = printerModels['TM-T88IV'];
-
     // Markup with QR code
     const markup = `{document}
 {center}
@@ -458,18 +434,19 @@ errorLevel=L
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt({
+    const encoder = printReceipt({
       markup,
-      printer: printerModel,
+      printer: printerModels['TM-T88IV'],
       device: mockDevice,
+      createImage: createMockImage,
       PrinterEncoder: MockPrinterEncoder,
     });
-    expect(encoderInstance).to.exist;
+    expect(encoder).to.exist;
 
     // Allow time for async operations
     setTimeout(() => {
       try {
-        const commands = encoderInstance.commands;
+        const commands = encoder.commands;
 
         // Find the QR code command
         const qrCommand = commands.find((cmd) => cmd.startsWith('qrcode:'));
@@ -482,12 +459,10 @@ errorLevel=L
       } catch (e) {
         done(e);
       }
-    }, 100);
+    }, 50);
   });
 
   it('handles barcodes correctly', (done) => {
-    const printerModel = printerModels.mPOP;
-
     // Markup with barcode
     const markup = `
 {document}
@@ -501,18 +476,19 @@ errorLevel=L
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt({
+    const encoder = printReceipt({
       markup,
-      printer: printerModel,
+      printer: printerModels.mPOP,
       device: mockDevice,
+      createImage: createMockImage,
       PrinterEncoder: MockPrinterEncoder,
     });
-    expect(encoderInstance).to.exist;
+    expect(encoder).to.exist;
 
     // Allow time for async operations
     setTimeout(() => {
       try {
-        const commands = encoderInstance.commands;
+        const commands = encoder.commands;
 
         // Find the raw command for barcode
         const barcodeCommand = commands.find((cmd) => cmd.startsWith('raw:'));
@@ -522,12 +498,10 @@ errorLevel=L
       } catch (e) {
         done(e);
       }
-    }, 100);
+    }, 50);
   });
 
   it('handles complex receipts with multiple command types', (done) => {
-    const printerModel = printerModels['TM-T88IV'];
-
     // Complex receipt markup
     const markup = `
 {document word-wrap=true}
@@ -561,20 +535,21 @@ Total: $32.97
 `;
 
     // Call printReceipt
-    encoderInstance = printReceipt({
+    const encoder = printReceipt({
       markup,
-      printer: printerModel,
+      printer: printerModels['TM-T88IV'],
       device: mockDevice,
+      createImage: createMockImage,
       PrinterEncoder: MockPrinterEncoder,
     });
-    expect(encoderInstance).to.exist;
+    expect(encoder).to.exist;
 
     // Allow time for async operations
     setTimeout(() => {
       try {
         expect(transferOutCalls.length).to.equal(1);
 
-        const commands = encoderInstance.commands;
+        const commands = encoder.commands;
 
         // Verify various commands were added in order
         expect(commands).to.include('align:center');
@@ -600,6 +575,6 @@ Total: $32.97
       } catch (e) {
         done(e);
       }
-    }, 100);
+    }, 50);
   });
 });

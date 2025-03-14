@@ -55,7 +55,7 @@ const imageModes = {
 };
 
 // Designed to work with PrinterEncoder from @point-of-sale/receipt-printer-encoder
-export function printReceipt({ markup, printer, device, PrinterEncoder }) {
+export function printReceipt({ markup, printer, device, createImage, PrinterEncoder }) {
   printer.chars = parseInt(printer.chars);
   printer.dots = parseInt(printer.dots);
 
@@ -74,7 +74,7 @@ export function printReceipt({ markup, printer, device, PrinterEncoder }) {
     imageMode: imageModes[printer.language],
   });
 
-  loadImages(commands).then((images) => {
+  loadImages({ commands, createImage }).then((images) => {
     sendReceiptCommands({ commands, images, printer, device, encoder });
   });
 
@@ -303,13 +303,13 @@ function encodeBarcode({ attributes, printer }) {
   }
 }
 
-async function loadImages(commands) {
+async function loadImages({ commands, createImage }) {
   let images = [];
 
   for (const command of commands) {
     if (command.name == 'image') {
       images.push(
-        await loadImage(command.attributes.src).catch((error) => {
+        await loadImage({ src: command.attributes.src, createImage }).catch((error) => {
           console.log(error);
           return null;
         })
@@ -320,9 +320,9 @@ async function loadImages(commands) {
   return images;
 }
 
-function loadImage(src) {
+function loadImage({ src, createImage }) {
   return new Promise((resolve, reject) => {
-    let image = new Image();
+    let image = createImage();
     image.crossOrigin = 'anonymous';
     image.onload = () => resolve(image);
     image.onerror = (error) => {
