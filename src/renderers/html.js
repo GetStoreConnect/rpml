@@ -1,4 +1,14 @@
-export function renderHtml({
+export function renderHtml(options) {
+  const createCanvas = (width, height) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    return canvas;
+  };
+  return renderHtmlWithCanvas({ createCanvas, ...options });
+}
+
+export function renderHtmlWithCanvas({
   commands,
   createCanvas,
   chars = 32,

@@ -1,15 +1,14 @@
 import { parse } from './parser.js';
 import { renderHtml } from './renderers/html.js';
 
-function renderHtmlFromBrowser(markup, renderOptions = {}) {
+export function parseAndRenderHtml(markup, renderOptions = {}) {
   const commands = parse(markup);
-  const createCanvas = (width, height) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    return canvas;
-  };
-  return renderHtml({ commands, createCanvas, ...renderOptions });
+  return renderHtml({ commands, ...renderOptions });
 }
 
-export { parse, renderHtml, renderHtmlFromBrowser };
+export function renderHtmlFromBrowser(markup, renderOptions = {}) {
+  console.warn('renderHtmlFromBrowser is deprecated. Use parseAndRenderHtml instead.');
+  return parseAndRenderHtml(markup, renderOptions);
+}
+
+export { parse, renderHtml };

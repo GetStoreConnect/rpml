@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { createCanvas } from 'canvas';
 import { parse } from '../../src/parser.js';
-import { renderHtml, renderRule, css } from '../../src/renderers/html.js';
+import { renderHtmlWithCanvas, renderRule, css } from '../../src/renderers/html.js';
 
 describe('HTML Renderer', () => {
   it('renders a double rule', () => {
@@ -144,7 +144,7 @@ Layby Terms & Conditions
 3) Cancellations incur 10% fee
 `;
 
-    const output = renderHtml({ commands: parse(markup), createCanvas });
+    const output = renderHtmlWithCanvas({ commands: parse(markup), createCanvas });
     const expectedOutput = `
     <html>
       <head>
