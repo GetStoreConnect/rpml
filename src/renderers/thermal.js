@@ -72,9 +72,11 @@ export function printReceipt({ markup, printer, device, createImage, PrinterEnco
     imageMode: imageModes[printer.language],
   });
 
-  loadImages({ commands, createImage }).then((images) => {
-    sendReceiptCommands({ commands, images, printer, device, encoder });
-  });
+  loadImages({ commands, createImage })
+    .then((images) => {
+      sendReceiptCommands({ commands, images, printer, device, encoder });
+    })
+    .catch((error) => console.log(error));
 
   return encoder;
 }
