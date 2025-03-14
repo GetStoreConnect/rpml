@@ -2,64 +2,51 @@ import { expect } from 'chai';
 import { createCanvas } from 'canvas';
 import { parse } from '../../src/parser.js';
 import {
-  renderHtmlWithCanvas,
-  renderRule,
-  css,
-  calculateDocWidth,
   applyCommand,
-  applyContentCommand,
+  buildBlockClasses,
+  buildContentClasses,
+  calculateDocWidth,
+  css,
+  renderBarcode,
   renderContent,
+  renderHtmlWithCanvas,
   renderImage,
   renderLine,
-  renderText,
+  renderQRCode,
+  renderRule,
   renderTable,
   renderTableCell,
   renderTableCellMargin,
-  renderBarcode,
-  renderQRCode,
-  buildContentClasses,
-  buildBlockClasses,
+  renderText,
   wrapDocument,
 } from '../../src/renderers/html.js';
 
 describe('HTML Renderer', () => {
-  // Create a mock canvas for testing
-  const mockCreateCanvas = (width, height) => {
-    const canvas = createCanvas(width, height);
-    return canvas;
-  };
-
-  // Create a basic state object for testing
-  const createTestState = () => ({
+  const buildState = (state = {}) => ({
     html: '',
     previousContentCommand: null,
-    styles: {
-      alignment: 'left',
-      size: 1,
-      bold: false,
-      italic: false,
-      underline: false,
-      invert: false,
-      small: false,
-    },
+    styles: buildStyles(),
     chars: 32,
     docWidth: 300,
     wordWrap: false,
+    ...state,
   });
 
-  it('renders a double rule', () => {
-    const command = { attributes: { line: 'solid', style: 'double' } };
-    const state = { chars: 32, styles: { alignment: 'left' } };
-    const output = renderRule({ command, state });
-    const expectedOutput =
-      '<div class="rpml-block rpml-left rpml-rule" style="position:relative;"><div class="rpml-rule-solid" style="width: 100%; border-bottom: 1px solid black; height: 3px;"></div></div>';
-    expect(output).to.equal(expectedOutput);
+  const buildStyles = (styles = {}) => ({
+    alignment: 'left',
+    size: 1,
+    bold: false,
+    italic: false,
+    underline: false,
+    invert: false,
+    small: false,
+    ...styles,
   });
 
   describe('calculateDocWidth', () => {
     it('correctly calculates document width based on character count', () => {
       const width = calculateDocWidth({
-        createCanvas: mockCreateCanvas,
+        createCanvas,
         chars: 32,
         fontFamily: 'monospace',
         fontSize: '14px',
@@ -72,7 +59,7 @@ describe('HTML Renderer', () => {
 
   describe('applyCommand', () => {
     it('handles document command', () => {
-      const state = createTestState();
+      const state = buildState();
       const command = { name: 'document', attributes: { wordWrap: true } };
 
       applyCommand({ command, state });
@@ -80,7 +67,7 @@ describe('HTML Renderer', () => {
     });
 
     it('handles alignment commands', () => {
-      const state = createTestState();
+      const state = buildState();
 
       applyCommand({ command: { name: 'left' }, state });
       expect(state.styles.alignment).to.equal('left');
@@ -93,7 +80,7 @@ describe('HTML Renderer', () => {
     });
 
     it('handles size command', () => {
-      const state = createTestState();
+      const state = buildState();
       const command = { name: 'size', value: 2 };
 
       applyCommand({ command, state });
@@ -101,7 +88,7 @@ describe('HTML Renderer', () => {
     });
 
     it('handles style commands (bold, italic, etc)', () => {
-      const state = createTestState();
+      const state = buildState();
 
       applyCommand({ command: { name: 'bold' }, state });
       expect(state.styles.bold).to.equal(true);
@@ -116,7 +103,7 @@ describe('HTML Renderer', () => {
 
   describe('renderContent', () => {
     it('routes to the correct render function based on command name', () => {
-      const state = createTestState();
+      const state = buildState();
 
       const imageCmd = { name: 'image', attributes: { src: 'test.png' } };
       expect(renderContent({ command: imageCmd, state })).to.include('img');
@@ -160,18 +147,14 @@ describe('HTML Renderer', () => {
   describe('renderLine', () => {
     it('renders a line break if previous command was text', () => {
       const command = { name: 'line' };
-      const state = {
-        ...createTestState(),
-        previousContentCommand: { name: 'text' },
-      };
-
+      const state = buildState({ previousContentCommand: { name: 'text' } });
       const output = renderLine({ command, state });
       expect(output).to.equal('<br>');
     });
 
     it('renders a div with proper classes when not following text', () => {
       const command = { name: 'line', value: 'Hello' };
-      const state = createTestState();
+      const state = buildState();
 
       const output = renderLine({ command, state });
       expect(output).to.include('<div class="rpml-block rpml-left rpml-size-1">');
@@ -241,6 +224,15 @@ describe('HTML Renderer', () => {
       const output = renderRule({ command, state });
       expect(output).to.include('width: 50%');
     });
+
+    it('renders a double rule', () => {
+      const command = { attributes: { line: 'solid', style: 'double' } };
+      const state = { chars: 32, styles: { alignment: 'left' } };
+      const output = renderRule({ command, state });
+      const expectedOutput =
+        '<div class="rpml-block rpml-left rpml-rule" style="position:relative;"><div class="rpml-rule-solid" style="width: 100%; border-bottom: 1px solid black; height: 3px;"></div></div>';
+      expect(output).to.equal(expectedOutput);
+    });
   });
 
   describe('renderTable', () => {
@@ -255,7 +247,7 @@ describe('HTML Renderer', () => {
           ],
         },
       };
-      const state = createTestState();
+      const state = buildState();
 
       const output = renderTable({ command, state });
       expect(output).to.include('<table class="rpml-table">');
@@ -276,7 +268,7 @@ describe('HTML Renderer', () => {
           align: ['left', 'right'],
         },
       };
-      const state = createTestState();
+      const state = buildState();
 
       const output = renderTable({ command, state });
       expect(output).to.include('text-align: left');
