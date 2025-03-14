@@ -55,7 +55,7 @@ const imageModes = {
 };
 
 // Designed to work with PrinterEncoder from @point-of-sale/receipt-printer-encoder
-export function printReceipt({ markup, printer, device, createImage, PrinterEncoder }) {
+export async function printReceipt({ markup, printer, device, createImage, PrinterEncoder }) {
   printer.chars = parseInt(printer.chars);
   printer.dots = parseInt(printer.dots);
 
@@ -72,11 +72,8 @@ export function printReceipt({ markup, printer, device, createImage, PrinterEnco
     imageMode: imageModes[printer.language],
   });
 
-  loadImages({ commands, createImage })
-    .then((images) => {
-      sendReceiptCommands({ commands, images, printer, device, encoder });
-    })
-    .catch((error) => console.log(error));
+  const images = await loadImages({ commands, createImage });
+  sendReceiptCommands({ commands, images, printer, device, encoder });
 
   return encoder;
 }

@@ -148,7 +148,7 @@ describe('Thermal Printer Renderer', () => {
     }
   }
 
-  it('initializes the encoder with correct printer settings', (done) => {
+  it('initializes the encoder with correct printer settings', async () => {
     const markup = `
 {document word-wrap=true}
 {center}
@@ -156,7 +156,7 @@ describe('Thermal Printer Renderer', () => {
 Test Receipt`;
 
     const device = new MockDevice();
-    const encoder = printReceipt({
+    const encoder = await printReceipt({
       markup,
       printer: printerModels.mPOP,
       device,
@@ -169,30 +169,22 @@ Test Receipt`;
     expect(encoder.options.width).to.equal(32);
     expect(encoder.options.wordWrap).to.be.true;
 
-    setTimeout(() => {
-      try {
-        // Check if anything was transferred
-        expect(device.transferOutCalls.length).to.be.greaterThan(0);
+    // Check if anything was transferred
+    expect(device.transferOutCalls.length).to.be.greaterThan(0);
 
-        if (device.transferOutCalls.length > 0) {
-          expect(device.transferOutCalls[0].endpoint).to.equal(1);
-        } else {
-          console.log('Debug: No transferOut calls were made');
-        }
+    if (device.transferOutCalls.length > 0) {
+      expect(device.transferOutCalls[0].endpoint).to.equal(1);
+    } else {
+      console.log('Debug: No transferOut calls were made');
+    }
 
-        expect(encoder.commands).to.include('initialize');
-        expect(encoder.commands).to.include('align:center');
-        expect(encoder.commands).to.include('line:Test Receipt');
-        expect(encoder.commands).to.include('cut:partial');
-
-        done();
-      } catch (e) {
-        done(e);
-      }
-    }, 50);
+    expect(encoder.commands).to.include('initialize');
+    expect(encoder.commands).to.include('align:center');
+    expect(encoder.commands).to.include('line:Test Receipt');
+    expect(encoder.commands).to.include('cut:partial');
   });
 
-  it('handles text formatting commands correctly', (done) => {
+  it('handles text formatting commands correctly', async () => {
     const markup = `
 {bold}
 Bold text
@@ -211,7 +203,7 @@ Small text
 {endSmall}`;
 
     const device = new MockDevice();
-    const encoder = printReceipt({
+    const encoder = await printReceipt({
       markup,
       printer: printerModels['TM-T88IV'],
       device,
@@ -220,30 +212,21 @@ Small text
     });
     expect(encoder).to.exist;
 
-    // Allow time for async operations
-    setTimeout(() => {
-      try {
-        const commands = encoder.commands;
+    const commands = encoder.commands;
 
-        expect(commands).to.include('bold:true');
-        expect(commands).to.include('bold:false');
-        expect(commands).to.include('italic:true');
-        expect(commands).to.include('italic:false');
-        expect(commands).to.include('underline:true');
-        expect(commands).to.include('underline:false');
-        expect(commands).to.include('invert:true');
-        expect(commands).to.include('invert:false');
-        expect(commands).to.include('size:small');
-        expect(commands).to.include('size:normal');
-
-        done();
-      } catch (e) {
-        done(e);
-      }
-    }, 50);
+    expect(commands).to.include('bold:true');
+    expect(commands).to.include('bold:false');
+    expect(commands).to.include('italic:true');
+    expect(commands).to.include('italic:false');
+    expect(commands).to.include('underline:true');
+    expect(commands).to.include('underline:false');
+    expect(commands).to.include('invert:true');
+    expect(commands).to.include('invert:false');
+    expect(commands).to.include('size:small');
+    expect(commands).to.include('size:normal');
   });
 
-  it('renders images correctly', (done) => {
+  it('renders images correctly', async () => {
     const markup = `
 {center}
 {image
@@ -253,7 +236,7 @@ Small text
 }`;
 
     const device = new MockDevice();
-    const encoder = printReceipt({
+    const encoder = await printReceipt({
       markup,
       printer: printerModels.mPOP,
       device,
@@ -262,26 +245,17 @@ Small text
     });
     expect(encoder).to.exist;
 
-    // Allow time for async operations
-    setTimeout(() => {
-      try {
-        const commands = encoder.commands;
+    const commands = encoder.commands;
 
-        const imageCommand = commands.find((cmd) => cmd.startsWith('image:'));
-        expect(imageCommand).to.exist;
-        expect(imageCommand).to.include('atkinson');
+    const imageCommand = commands.find((cmd) => cmd.startsWith('image:'));
+    expect(imageCommand).to.exist;
+    expect(imageCommand).to.include('atkinson');
 
-        // Verify the image was loaded with correct source
-        expect(device.transferOutCalls.length).to.equal(1);
-
-        done();
-      } catch (e) {
-        done(e);
-      }
-    }, 50);
+    // Verify the image was loaded with correct source
+    expect(device.transferOutCalls.length).to.equal(1);
   });
 
-  it('handles image loading errors gracefully', (done) => {
+  it('handles image loading errors gracefully', async () => {
     const markup = `
 {center}
 {image
@@ -292,7 +266,7 @@ Small text
 This should still render`;
 
     const device = new MockDevice();
-    const encoder = printReceipt({
+    const encoder = await printReceipt({
       markup,
       printer: printerModels.mPOP,
       device,
@@ -301,24 +275,15 @@ This should still render`;
     });
     expect(encoder).to.exist;
 
-    // Allow time for async operations
-    setTimeout(() => {
-      try {
-        expect(device.transferOutCalls.length).to.equal(1);
+    expect(device.transferOutCalls.length).to.equal(1);
 
-        const commands = encoder.commands;
+    const commands = encoder.commands;
 
-        // The line command should still be processed despite image error
-        expect(commands).to.include('line:This should still render');
-
-        done();
-      } catch (e) {
-        done(e);
-      }
-    }, 50);
+    // The line command should still be processed despite image error
+    expect(commands).to.include('line:This should still render');
   });
 
-  it('renders tables correctly', (done) => {
+  it('renders tables correctly', async () => {
     const markup = `
 {table
   cols=3
@@ -330,7 +295,7 @@ This should still render`;
 }`;
 
     const device = new MockDevice();
-    const encoder = printReceipt({
+    const encoder = await printReceipt({
       markup,
       printer: printerModels['TM-T88IV'],
       device,
@@ -339,30 +304,21 @@ This should still render`;
     });
     expect(encoder).to.exist;
 
-    // Allow time for async operations
-    setTimeout(() => {
-      try {
-        const commands = encoder.commands;
+    const commands = encoder.commands;
 
-        const tableCommand = commands.find((cmd) => cmd.startsWith('table:'));
-        expect(tableCommand).to.exist;
-        expect(tableCommand).to.include('3x2'); // 3 columns, 2 rows
-
-        done();
-      } catch (e) {
-        done(e);
-      }
-    }, 50);
+    const tableCommand = commands.find((cmd) => cmd.startsWith('table:'));
+    expect(tableCommand).to.exist;
+    expect(tableCommand).to.include('3x2'); // 3 columns, 2 rows
   });
 
-  it('renders rules with different styles', (done) => {
+  it('renders rules with different styles', async () => {
     const markup = `
 {rule line=solid width=32}
 {rule line=dashed width=20}
 {rule line=dashed style=double width=10}`;
 
     const device = new MockDevice();
-    const encoder = printReceipt({
+    const encoder = await printReceipt({
       markup,
       printer: printerModels.mPOP,
       device,
@@ -371,29 +327,20 @@ This should still render`;
     });
     expect(encoder).to.exist;
 
-    // Allow time for async operations
-    setTimeout(() => {
-      try {
-        const commands = encoder.commands;
+    const commands = encoder.commands;
 
-        const solidRule = commands.find((cmd) => cmd.startsWith('rule:'));
-        expect(solidRule).to.exist;
-        expect(solidRule).to.include('"width":32');
+    const solidRule = commands.find((cmd) => cmd.startsWith('rule:'));
+    expect(solidRule).to.exist;
+    expect(solidRule).to.include('"width":32');
 
-        const dashedLine = commands.find((cmd) => cmd === 'line:--------------------');
-        expect(dashedLine).to.exist;
+    const dashedLine = commands.find((cmd) => cmd === 'line:--------------------');
+    expect(dashedLine).to.exist;
 
-        const doubleDashedLine = commands.find((cmd) => cmd === 'line:==========');
-        expect(doubleDashedLine).to.exist;
-
-        done();
-      } catch (e) {
-        done(e);
-      }
-    }, 50);
+    const doubleDashedLine = commands.find((cmd) => cmd === 'line:==========');
+    expect(doubleDashedLine).to.exist;
   });
 
-  it('renders QR codes correctly', (done) => {
+  it('renders QR codes correctly', async () => {
     const markup = `
 {center}
 {qrcode
@@ -404,7 +351,7 @@ This should still render`;
 }`;
 
     const device = new MockDevice();
-    const encoder = printReceipt({
+    const encoder = await printReceipt({
       markup,
       printer: printerModels['TM-T88IV'],
       device,
@@ -413,25 +360,16 @@ This should still render`;
     });
     expect(encoder).to.exist;
 
-    // Allow time for async operations
-    setTimeout(() => {
-      try {
-        const commands = encoder.commands;
+    const commands = encoder.commands;
 
-        const qrCommand = commands.find((cmd) => cmd.startsWith('qrcode:'));
-        expect(qrCommand).to.exist;
-        expect(qrCommand).to.include('https://example.com');
-        expect(qrCommand).to.include('model2');
-        expect(qrCommand).to.include('size6');
-
-        done();
-      } catch (e) {
-        done(e);
-      }
-    }, 50);
+    const qrCommand = commands.find((cmd) => cmd.startsWith('qrcode:'));
+    expect(qrCommand).to.exist;
+    expect(qrCommand).to.include('https://example.com');
+    expect(qrCommand).to.include('model2');
+    expect(qrCommand).to.include('size6');
   });
 
-  it('handles barcodes correctly', (done) => {
+  it('handles barcodes correctly', async () => {
     const markup = `
 {center}
 {barcode
@@ -442,7 +380,7 @@ This should still render`;
 }`;
 
     const device = new MockDevice();
-    const encoder = printReceipt({
+    const encoder = await printReceipt({
       markup,
       printer: printerModels.mPOP,
       device,
@@ -451,21 +389,12 @@ This should still render`;
     });
     expect(encoder).to.exist;
 
-    // Allow time for async operations
-    setTimeout(() => {
-      try {
-        const commands = encoder.commands;
-        const barcodeCommand = commands.find((cmd) => cmd.startsWith('raw:'));
-        expect(barcodeCommand).to.exist;
-
-        done();
-      } catch (e) {
-        done(e);
-      }
-    }, 50);
+    const commands = encoder.commands;
+    const barcodeCommand = commands.find((cmd) => cmd.startsWith('raw:'));
+    expect(barcodeCommand).to.exist;
   });
 
-  it('handles complex receipts with multiple command types', (done) => {
+  it('handles complex receipts with multiple command types', async () => {
     const markup = `
 {center}
 {bold}
@@ -496,7 +425,7 @@ Total: $32.97
 {qrcode data="receipt-id-123" size=4}`;
 
     const device = new MockDevice();
-    const encoder = printReceipt({
+    const encoder = await printReceipt({
       markup,
       printer: printerModels['TM-T88IV'],
       device,
@@ -505,32 +434,23 @@ Total: $32.97
     });
     expect(encoder).to.exist;
 
-    // Allow time for async operations
-    setTimeout(() => {
-      try {
-        expect(device.transferOutCalls.length).to.equal(1);
+    expect(device.transferOutCalls.length).to.equal(1);
 
-        const commands = encoder.commands;
+    const commands = encoder.commands;
 
-        expect(commands).to.include('align:center');
-        expect(commands).to.include('bold:true');
-        expect(commands).to.include('line:RECEIPT');
-        expect(commands).to.include('bold:false');
-        expect(commands).to.include('align:right');
-        expect(commands).to.include('align:center');
+    expect(commands).to.include('align:center');
+    expect(commands).to.include('bold:true');
+    expect(commands).to.include('line:RECEIPT');
+    expect(commands).to.include('bold:false');
+    expect(commands).to.include('align:right');
+    expect(commands).to.include('align:center');
 
-        const tableCommands = commands.filter((cmd) => cmd.startsWith('table:'));
-        expect(tableCommands).to.have.length(2);
+    const tableCommands = commands.filter((cmd) => cmd.startsWith('table:'));
+    expect(tableCommands).to.have.length(2);
 
-        const qrCommands = commands.filter((cmd) => cmd.startsWith('qrcode:receipt-id-123'));
-        expect(qrCommands).to.have.length(1);
+    const qrCommands = commands.filter((cmd) => cmd.startsWith('qrcode:receipt-id-123'));
+    expect(qrCommands).to.have.length(1);
 
-        expect(commands).to.include('cut:partial');
-
-        done();
-      } catch (e) {
-        done(e);
-      }
-    }, 50);
+    expect(commands).to.include('cut:partial');
   });
 });
