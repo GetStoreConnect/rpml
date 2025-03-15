@@ -99,6 +99,14 @@ describe('HTML Renderer', () => {
       applyCommand({ command: { name: 'italic' }, state });
       expect(state.styles.italic).to.equal(true);
     });
+
+    it('handles cut command', () => {
+      const state = buildState();
+      const command = { name: 'cut', value: 'partial' };
+
+      applyCommand({ command, state });
+      expect(state).to.deep.equal(buildState());
+    });
   });
 
   describe('renderContent', () => {

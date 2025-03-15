@@ -59,6 +59,8 @@ export function applyCommand({ command, state }) {
     case 'document':
       state.wordWrap = command.attributes.wordWrap;
       break;
+    case 'cut':
+      break; // Cut doesn't do anything in HTML
     case 'left':
       state.styles.alignment = command.name;
       break;

@@ -58,6 +58,9 @@ const schema = {
   size: {
     param: { type: 'number', options: [1, 2, 3, 4, 5, 6], default: 1 },
   },
+  cut: {
+    param: { type: 'string', options: ['partial', 'full'], default: 'full' },
+  },
   barcode: {
     attributes: {
       type: { type: 'keyword', options: ['upca', 'ean13', 'ean8', 'code39', 'code128'] },
