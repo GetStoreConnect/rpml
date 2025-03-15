@@ -1,10 +1,5 @@
 import { expect } from 'chai';
-import {
-  printReceipt,
-  printerModels,
-  addFinalCommands,
-  encodeCommand,
-} from '../../src/renderers/thermal.js';
+import { printReceipt, printerModels, addFinalCommands, encodeCommand } from '../src/printer.js';
 
 describe('Thermal Printer Renderer', () => {
   // Mock PrinterEncoder class from @point-of-sale/receipt-printer-encoder

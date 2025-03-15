@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { createCanvas } from 'canvas';
-import { parse } from '../../src/parser.js';
+import { parse } from '../src/parser.js';
 import {
   applyCommand,
   buildBlockClasses,
@@ -21,7 +21,7 @@ import {
   renderTableCellMargin,
   renderText,
   wrapDocument,
-} from '../../src/renderers/html.js';
+} from '../src/htmlRenderer.js';
 
 describe('HTML Renderer', () => {
   const buildState = (state = {}) => ({

@@ -1,4 +1,4 @@
-import { parse } from '../parser.js';
+import { parse } from './parser.js';
 
 const barcodeTypeMap = {
   'star-prnt': {
@@ -54,7 +54,7 @@ const imageModes = {
   'esc-pos': 'raster',
 };
 
-// Designed to work with PrinterEncoder from @point-of-sale/receipt-printer-encoder
+// Designed to work with PrinterEncoder from thermal-printer-encoder package
 export async function printReceipt({ markup, printer, device, createImage, PrinterEncoder }) {
   printer.chars = parseInt(printer.chars);
   printer.dots = parseInt(printer.dots);

@@ -1,5 +1,5 @@
 import { parse } from './parser.js';
-import { renderHtml } from './renderers/html.js';
+import { renderHtml } from './htmlRenderer.js';
 
 export function parseAndRenderHtml(markup, renderOptions = {}) {
   const commands = parse(markup);
