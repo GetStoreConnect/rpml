@@ -114,6 +114,8 @@ export function renderContent({ command, state }) {
       return renderLine({ command, state });
     case 'text':
       return renderText({ command, styles });
+    case 'newline':
+      return renderNewline({ command });
     case 'rule':
       return renderRule({ command, state });
     case 'table':
@@ -148,6 +150,14 @@ export function renderText({ command, styles }) {
   const contentClasses = buildContentClasses({ styles });
   const value = command.value || '';
   return `<span class="${contentClasses}">${value}</span>`;
+}
+
+export function renderNewline({ command }) {
+  let html = '';
+  for (let i = 0; i < command.value; i++) {
+    html += '<br>';
+  }
+  return html;
 }
 
 export function renderRule({ command, state }) {

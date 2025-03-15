@@ -58,6 +58,9 @@ const schema = {
   size: {
     param: { type: 'number', options: [1, 2, 3, 4, 5, 6], default: 1 },
   },
+  newline: {
+    param: { type: 'number', default: 1 },
+  },
   cut: {
     param: { type: 'string', options: ['partial', 'full'], default: 'full' },
   },

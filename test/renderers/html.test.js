@@ -12,6 +12,7 @@ import {
   renderHtmlWithCanvas,
   renderImage,
   renderLine,
+  renderNewline,
   renderQRCode,
   renderRule,
   renderTable,
@@ -106,6 +107,14 @@ describe('HTML Renderer', () => {
 
       applyCommand({ command, state });
       expect(state).to.deep.equal(buildState());
+    });
+  });
+
+  describe('renderNewline', () => {
+    it('renders div for each new line', () => {
+      const command = { name: 'newline', value: 2 };
+      const output = renderNewline({ command });
+      expect(output).to.include('<br><br>');
     });
   });
 

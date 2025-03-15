@@ -81,7 +81,8 @@ export async function printReceipt({ markup, printer, device, createImage, Print
 function endCommands() {
   return [
     {
-      name: 'bottom-margin',
+      name: 'newline',
+      value: 6,
     },
     {
       name: 'cut',
@@ -152,8 +153,8 @@ function receiptCommand({ command, encoder, images, printer }) {
       const table = buildTable({ command, printer });
       return encoder.table(table.columns, table.rows);
 
-    case 'bottom-margin':
-      return encoder.newline().newline().newline().newline().newline().newline();
+    case 'newline':
+      return encoder.newline(command.value);
 
     case 'cut':
       return encoder.cut(command.value);
