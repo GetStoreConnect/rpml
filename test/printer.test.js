@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { parse } from '../src/parser.js';
 import { printReceipt, printerModels, addFinalCommands, encodeCommand } from '../src/printer.js';
 
 describe('Thermal Printer Renderer', () => {
@@ -188,7 +189,7 @@ Test Receipt`;
 
     const device = new MockDevice();
     const encoder = await printReceipt({
-      markup,
+      commands: parse(markup),
       printer: printerModels.mPOP,
       device,
       createImage: createMockImage,
@@ -235,7 +236,7 @@ Small text
 
     const device = new MockDevice();
     const encoder = await printReceipt({
-      markup,
+      commands: parse(markup),
       printer: printerModels['TM-T88IV'],
       device,
       createImage: createMockImage,
@@ -268,7 +269,7 @@ Small text
 
     const device = new MockDevice();
     const encoder = await printReceipt({
-      markup,
+      commands: parse(markup),
       printer: printerModels.mPOP,
       device,
       createImage: createMockImage,
@@ -312,7 +313,7 @@ This should still render`;
 
       const device = new MockDevice();
       const encoder = await printReceipt({
-        markup,
+        commands: parse(markup),
         printer: printerModels.mPOP,
         device,
         createImage: createFailingMockImage,
@@ -344,7 +345,7 @@ This should still render`;
 
     const device = new MockDevice();
     const encoder = await printReceipt({
-      markup,
+      commands: parse(markup),
       printer: printerModels['TM-T88IV'],
       device,
       createImage: createMockImage,
@@ -367,7 +368,7 @@ This should still render`;
 
     const device = new MockDevice();
     const encoder = await printReceipt({
-      markup,
+      commands: parse(markup),
       printer: printerModels.mPOP,
       device,
       createImage: createMockImage,
@@ -400,7 +401,7 @@ This should still render`;
 
     const device = new MockDevice();
     const encoder = await printReceipt({
-      markup,
+      commands: parse(markup),
       printer: printerModels['TM-T88IV'],
       device,
       createImage: createMockImage,
@@ -429,7 +430,7 @@ This should still render`;
 
     const device = new MockDevice();
     const encoder = await printReceipt({
-      markup,
+      commands: parse(markup),
       printer: printerModels.mPOP,
       device,
       createImage: createMockImage,
@@ -474,7 +475,7 @@ Total: $32.97
 
     const device = new MockDevice();
     const encoder = await printReceipt({
-      markup,
+      commands: parse(markup),
       printer: printerModels['TM-T88IV'],
       device,
       createImage: createMockImage,

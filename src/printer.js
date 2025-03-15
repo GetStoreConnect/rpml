@@ -1,5 +1,3 @@
-import { parse } from './parser.js';
-
 const barcodeTypeMap = {
   'star-prnt': {
     CODE128: 0x06,
@@ -55,21 +53,13 @@ const imageModes = {
 };
 
 // Designed to work with PrinterEncoder from thermal-printer-encoder package
-export async function printReceipt({ markup, printer, device, createImage, PrinterEncoder }) {
-  printer.chars = parseInt(printer.chars);
-  printer.dots = parseInt(printer.dots);
-
-  let commands = parse(markup);
+export async function printReceipt({ commands, printer, device, createImage, PrinterEncoder }) {
   commands = addFinalCommands(commands);
-
-  const documentIndex = commands.findIndex((i) => i.name == 'document');
-  const documentCommand = commands[documentIndex];
-  const wordWrap = documentCommand ? documentCommand.attributes.wordWrap : false;
 
   const encoder = new PrinterEncoder({
     language: printer.language,
     width: printer.chars,
-    wordWrap,
+    wordWrap: getWordWrap({ commands }),
     imageMode: imageModes[printer.language],
   });
 
@@ -89,6 +79,12 @@ export function addFinalCommands(commands) {
     { name: 'cut', value: 'partial' },
   ];
   return [...commands, ...finalCommands];
+}
+
+export function getWordWrap({ commands }) {
+  const documentIndex = commands.findIndex((i) => i.name == 'document');
+  const documentCommand = commands[documentIndex];
+  return documentCommand ? documentCommand.attributes.wordWrap : false;
 }
 
 function sendReceiptCommands({ commands, images, printer, device, encoder }) {
