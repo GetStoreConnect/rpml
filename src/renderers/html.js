@@ -59,8 +59,6 @@ export function applyCommand({ command, state }) {
     case 'document':
       state.wordWrap = command.attributes.wordWrap;
       break;
-    case 'cut':
-      break; // Cut doesn't do anything in HTML
     case 'left':
       state.styles.alignment = command.name;
       break;
@@ -116,6 +114,8 @@ export function renderContent({ command, state }) {
       return renderText({ command, styles });
     case 'newline':
       return renderNewline({ command });
+    case 'cut':
+      return renderCut({ command });
     case 'rule':
       return renderRule({ command, state });
     case 'table':
@@ -162,6 +162,13 @@ export function renderNewline({ command }) {
     html += '<br>';
   }
   return html;
+}
+
+export function renderCut({ command }) {
+  if (command.value === 'none') {
+    return '';
+  }
+  return `<div class="rpml-cut-${command.value}"></div>`;
 }
 
 export function renderRule({ command, state }) {
@@ -416,7 +423,7 @@ export const css = `
   }
 
   .rpml-rule {
-    position:relative;
+    position: relative;
   }
 
   .rpml-rule .rpml-rule-solid {
@@ -427,6 +434,16 @@ export const css = `
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+  }
+
+  .rpml-cut-full,
+  .rpml-cut-partial {
+    border-top: 1px dashed #D00;
+  }
+
+  .rpml-cut-partial {
+    margin-left: auto;
+    width: 50%;
   }
 
   .rpml-barcode, .rpml-qrcode {

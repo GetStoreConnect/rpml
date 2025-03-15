@@ -9,6 +9,7 @@ import {
   css,
   renderBarcode,
   renderContent,
+  renderCut,
   renderHtmlWithCanvas,
   renderImage,
   renderLine,
@@ -100,22 +101,6 @@ describe('HTML Renderer', () => {
       applyCommand({ command: { name: 'italic' }, state });
       expect(state.styles.italic).to.equal(true);
     });
-
-    it('handles cut command', () => {
-      const state = buildState();
-      const command = { name: 'cut', value: 'partial' };
-
-      applyCommand({ command, state });
-      expect(state).to.deep.equal(buildState());
-    });
-  });
-
-  describe('renderNewline', () => {
-    it('renders div for each new line', () => {
-      const command = { name: 'newline', value: 2 };
-      const output = renderNewline({ command });
-      expect(output).to.include('<br><br>');
-    });
   });
 
   describe('renderContent', () => {
@@ -130,6 +115,22 @@ describe('HTML Renderer', () => {
 
       const ruleCmd = { name: 'rule', attributes: {} };
       expect(renderContent({ command: ruleCmd, state })).to.include('rpml-rule');
+    });
+  });
+
+  describe('renderNewline', () => {
+    it('renders br for each new line', () => {
+      const command = { name: 'newline', value: 2 };
+      const output = renderNewline({ command });
+      expect(output).to.include('<br><br>');
+    });
+  });
+
+  describe('renderCut', () => {
+    it('renders div for cut', () => {
+      const command = { name: 'cut', value: 'partial' };
+      const output = renderCut({ command });
+      expect(output).to.include('<div class="rpml-cut-partial"></div>');
     });
   });
 
