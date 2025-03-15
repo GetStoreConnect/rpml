@@ -169,6 +169,13 @@ describe('HTML Renderer', () => {
       expect(output).to.equal('<br>');
     });
 
+    it('includes line with text content when previous command was text', () => {
+      const command = { name: 'line', value: 'Hello' };
+      const state = buildState({ previousContentCommand: { name: 'text' } });
+      const output = renderLine({ command, state });
+      expect(output).to.equal('<span class="">Hello</span><br>');
+    });
+
     it('renders a div with proper classes when not following text', () => {
       const command = { name: 'line', value: 'Hello' };
       const state = buildState();

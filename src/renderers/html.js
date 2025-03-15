@@ -136,13 +136,17 @@ export function renderImage({ command, styles }) {
 }
 
 export function renderLine({ command, state }) {
+  const contentClasses = buildContentClasses({ styles: state.styles });
+  const value = command.value || '';
+
   if (state.previousContentCommand?.name == 'text') {
+    if (value) {
+      return `<span class="${contentClasses}">${value}</span><br>`;
+    }
     return '<br>';
   }
 
   const blockClasses = buildBlockClasses({ command, styles: state.styles });
-  const contentClasses = buildContentClasses({ styles: state.styles });
-  const value = command.value || '';
   return `<div class="${blockClasses}"><span class="${contentClasses}">${value}</span></div>`;
 }
 
