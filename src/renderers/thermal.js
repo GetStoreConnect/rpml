@@ -60,6 +60,7 @@ export async function printReceipt({ markup, printer, device, createImage, Print
   printer.dots = parseInt(printer.dots);
 
   let commands = parse(markup);
+  commands = addFinalCommands(commands);
 
   const documentIndex = commands.findIndex((i) => i.name == 'document');
   const documentCommand = commands[documentIndex];
@@ -78,23 +79,20 @@ export async function printReceipt({ markup, printer, device, createImage, Print
   return encoder;
 }
 
-function endCommands() {
-  return [
-    {
-      name: 'newline',
-      value: 6,
-    },
-    {
-      name: 'cut',
-      value: 'partial',
-    },
+export function addFinalCommands(commands) {
+  const lastCommand = commands[commands.length - 1];
+  if (lastCommand?.name == 'cut') {
+    return commands;
+  }
+  const finalCommands = [
+    { name: 'newline', value: 6 },
+    { name: 'cut', value: 'partial' },
   ];
+  return [...commands, ...finalCommands];
 }
 
 function sendReceiptCommands({ commands, images, printer, device, encoder }) {
   encoder = encoder.initialize();
-
-  commands.push(...endCommands());
 
   for (const command of commands) {
     encoder = receiptCommand({ command, encoder, images, printer });
