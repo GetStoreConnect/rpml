@@ -95,7 +95,7 @@ function sendReceiptCommands({ commands, images, printer, device, encoder }) {
   encoder = encoder.initialize();
 
   for (const command of commands) {
-    encoder = receiptCommand({ command, encoder, images, printer });
+    encoder = encodeCommand({ command, encoder, images, printer });
   }
 
   device.transferOut(1, encoder.encode()).catch((error) => {
@@ -103,7 +103,7 @@ function sendReceiptCommands({ commands, images, printer, device, encoder }) {
   });
 }
 
-function receiptCommand({ command, encoder, images, printer }) {
+export function encodeCommand({ command, encoder, images, printer }) {
   switch (command.name) {
     case 'document':
       return encoder; // Do nothing for document command
@@ -155,7 +155,7 @@ function receiptCommand({ command, encoder, images, printer }) {
       return encoder.newline(command.value);
 
     case 'cut':
-      return encoder.cut(command.value);
+      return command.value === 'none' ? encoder : encoder.cut(command.value);
 
     default:
       console.log(`Unknown command type: ${command.name}`);

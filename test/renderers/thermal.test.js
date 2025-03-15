@@ -1,5 +1,10 @@
 import { expect } from 'chai';
-import { printReceipt, printerModels, addFinalCommands } from '../../src/renderers/thermal.js';
+import {
+  printReceipt,
+  printerModels,
+  addFinalCommands,
+  encodeCommand,
+} from '../../src/renderers/thermal.js';
 
 describe('Thermal Printer Renderer', () => {
   // Mock PrinterEncoder class from @point-of-sale/receipt-printer-encoder
@@ -165,6 +170,17 @@ describe('Thermal Printer Renderer', () => {
       const newCommands = addFinalCommands(commands);
 
       expect(newCommands).to.deep.equal([{ name: 'cut', value: 'partial' }]);
+    });
+  });
+
+  describe('encodeCommand', () => {
+    it('does nothing if cut is none', () => {
+      const encoder = new MockPrinterEncoder();
+      const command = { name: 'cut', value: 'none' };
+      const newEncoder = encodeCommand({ command, encoder });
+
+      expect(newEncoder).to.equal(encoder);
+      expect(encoder.commands).to.deep.equal([]);
     });
   });
 
