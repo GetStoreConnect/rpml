@@ -37,7 +37,7 @@ export function renderHtmlWithCanvas({
 
   const state = {
     html: '',
-    previousContentCommand: null,
+    pendingText: '',
     styles,
     chars,
     docWidth,
@@ -49,6 +49,8 @@ export function renderHtmlWithCanvas({
   for (const command of commands) {
     applyCommand({ command, state });
   }
+
+  insertPendingText({ state });
 
   return wrapDocument({ state, fontFamily, fontSize, lineHeight });
 }
@@ -65,8 +67,7 @@ export function calculateDocWidth({ createCanvas, chars, fontFamily, fontSize })
 export function applyCommand({ command, state }) {
   switch (command.name) {
     case 'document':
-      state.wordWrap = command.attributes.wordWrap;
-      break;
+      break; // Document attributes are handled earlier
     case 'left':
       state.styles.alignment = command.name;
       break;
@@ -94,94 +95,82 @@ export function applyCommand({ command, state }) {
     case 'small':
       state.styles.small = command.off === true ? false : true;
       break;
-    case 'line':
     case 'text':
-      applyContentCommand({ command, state });
+      state.pendingText += command.value;
+      break;
+    case 'line':
+      applyLineCommand({ command, state });
+      break;
+    case 'newline':
+      applyNewlineCommand({ command, state });
       break;
     default:
-      state.styles.size = 1;
-      applyContentCommand({ command, state });
+      applyRichContentCommand({ command, state });
       break;
   }
 }
 
-export function applyContentCommand({ command, state }) {
-  state.html += renderContent({ command, state }) + '\n';
-  state.previousContentCommand = command;
+export function applyLineCommand({ command, state }) {
+  const text = state.pendingText + (command.value || '');
+  state.html += renderTextBlock({ text, state });
+  state.pendingText = '';
 }
 
-export function renderContent({ command, state }) {
+export function applyNewlineCommand({ command, state }) {
+  let amount = command.value;
+  if (state.pendingText) {
+    insertPendingText({ state });
+    amount -= 1;
+  }
+  for (let i = 0; i < amount; i++) {
+    state.html += '<br>';
+  }
+}
+
+export function applyRichContentCommand({ command, state }) {
+  insertPendingText({ state });
+  state.styles.size = 1;
+  state.html += renderRichContent({ command, state }) + '\n';
+}
+
+export function renderRichContent({ command, state }) {
   const styles = state.styles;
 
   switch (command.name) {
-    case 'image':
-      return renderImage({ command, styles });
-    case 'line':
-      return renderLine({ command, state });
-    case 'text':
-      return renderText({ command, styles });
-    case 'newline':
-      return renderNewline({ command });
-    case 'cut':
-      return renderCut({ command });
     case 'rule':
       return renderRule({ command, state });
+    case 'image':
+      return renderImage({ command, styles });
     case 'table':
       return renderTable({ command, state });
     case 'barcode':
       return renderBarcode({ command, styles });
     case 'qrcode':
       return renderQRCode({ command, styles });
+    case 'cut':
+      return renderCut({ command });
     default:
       throw new Error(`Unknown command: ${command.name}`);
   }
 }
 
-export function renderImage({ command, styles }) {
-  const widthAttribute = command.attributes.size ? `width="${command.attributes.size}%"` : '';
-  const blockClasses = buildBlockClasses({ command, styles });
-  return `<div class="${blockClasses} rpml-img-wrapper"><img class="rpml-img" src="${command.attributes.src}" ${widthAttribute}></div>`;
+export function insertPendingText({ state }) {
+  if (!state.pendingText) {
+    return;
+  }
+  state.html += renderTextBlock({ text: state.pendingText, state }) + '\n';
+  state.pendingText = '';
 }
 
-export function renderLine({ command, state }) {
+export function renderTextBlock({ text, state }) {
+  const blockClasses = buildBlockClasses({ styles: state.styles });
   const contentClasses = buildContentClasses({ styles: state.styles });
-  const value = command.value || '';
-
-  if (state.previousContentCommand?.name == 'text') {
-    if (value) {
-      return `<span class="${contentClasses}">${value}</span><br>`;
-    }
-    return '<br>';
-  }
-
-  const blockClasses = buildBlockClasses({ command, styles: state.styles });
-  return `<div class="${blockClasses}"><span class="${contentClasses}">${value}</span></div>`;
-}
-
-export function renderText({ command, styles }) {
-  const contentClasses = buildContentClasses({ styles });
-  const value = command.value || '';
-  return `<span class="${contentClasses}">${value}</span>`;
-}
-
-export function renderNewline({ command }) {
-  let html = '';
-  for (let i = 0; i < command.value; i++) {
-    html += '<br>';
-  }
-  return html;
-}
-
-export function renderCut({ command }) {
-  if (command.value === 'none') {
-    return '';
-  }
-  return `<div class="rpml-cut-${command.value}"></div>`;
+  return `<div class="${blockClasses}"><span class="${contentClasses}">${text}</span></div>`;
 }
 
 export function renderRule({ command, state }) {
   const charCount = state.chars;
-  const blockClasses = buildBlockClasses({ command, styles: state.styles });
+  const blockClasses = buildBlockClasses({ styles: state.styles });
 
   if (command.attributes.line == 'dashed') {
     const char = command.attributes.styles == 'double' ? '=' : '-';
@@ -195,6 +184,12 @@ export function renderRule({ command, state }) {
     const doubleStyle = ` ${command.attributes.style == 'double' ? 'border-bottom: 1px solid black; height: 3px;' : ''}`;
     return `<div class="${blockClasses} rpml-rule" style="position:relative;"><div class="rpml-rule-solid" style="width: ${width};${doubleStyle}"></div></div>`;
   }
+}
+
+export function renderImage({ command, styles }) {
+  const widthAttribute = command.attributes.size ? `width="${command.attributes.size}%"` : '';
+  const blockClasses = buildBlockClasses({ styles });
+  return `<div class="${blockClasses} rpml-img-wrapper"><img class="rpml-img" src="${command.attributes.src}" ${widthAttribute}></div>`;
 }
 
 export function renderTable({ command, state }) {
@@ -252,15 +247,22 @@ export function renderTableCellMargin({ contentClasses, margin, state }) {
 }
 
 export function renderBarcode({ command, styles }) {
-  const blockClasses = buildBlockClasses({ command, styles });
+  const blockClasses = buildBlockClasses({ styles });
   return `<div class="${blockClasses} rpml-barcode"><img src="https://barcode.tec-it.com/barcode.ashx?data=${command.attributes.data}&code=${command.attributes.type}" width="100%"></div>`;
 }
 
 export function renderQRCode({ command, styles }) {
   // super rough implementation of sizing
   const size = parseInt(21 * command.attributes.size);
-  const blockClasses = buildBlockClasses({ command, styles });
+  const blockClasses = buildBlockClasses({ styles });
   return `<div class="${blockClasses} rpml-qrcode"><img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${command.attributes.data}"></div>`;
+}
+
+export function renderCut({ command }) {
+  if (command.value === 'none') {
+    return '';
+  }
+  return `<div class="rpml-cut-${command.value}"></div>`;
 }
 
 export function buildContentClasses({ styles }) {
@@ -289,10 +291,10 @@ export function buildContentClasses({ styles }) {
   return classes.join(' ');
 }
 
-export function buildBlockClasses({ command, styles }) {
+export function buildBlockClasses({ styles }) {
   const classes = ['rpml-block', `rpml-${styles.alignment}`];
 
-  if (styles.size && (command.name == 'line' || command.name == 'text')) {
+  if (styles.size && styles.size > 1) {
     classes.push(`rpml-size-${styles.size}`);
   }
 
@@ -336,6 +338,8 @@ export const css = `
   .rpml-block {
     min-height: 1.3em;
     text-align: left;
+    line-height: 100%;
+    font-size: 100%;
   }
 
   .rpml-table {
@@ -365,11 +369,6 @@ export const css = `
 
   .rpml-small {
     font-size: 80%;
-  }
-
-  .rpml-size-1 {
-    line-height: 100%;
-    font-size: 100%;
   }
 
   .rpml-size-2 {
