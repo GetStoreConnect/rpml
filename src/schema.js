@@ -22,7 +22,6 @@ const schema = {
   },
   left: {},
   right: {},
-  line: {},
   rule: {
     attributes: {
       width: { type: 'number' },
@@ -38,6 +37,9 @@ const schema = {
       margin: { type: 'number' },
       width: { type: 'number', split: true },
     },
+  },
+  line: {
+    param: { type: 'string', default: '' },
   },
   text: {
     param: { type: 'string' },

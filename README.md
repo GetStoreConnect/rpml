@@ -36,14 +36,22 @@ Defines the start of a document with optional configuration attributes. This tag
 
 ### line
 
-Inserts a blank line.
+Inserts a line of text, leave off the parameter to do a blank line.
+
+**Parameter:**
+
+*   A string of text to be displayed. (Optional)
 
 **Examples:**
 ```rpml
-This has a blank line after it
+{line This is the first line}
+This is the second line
 {line}
-This has a blank line before it
+This is the forth line, the third line is blank.
 ```
+
+Lines with only text are a shorthand for the `{line}` tag. For example, a line with `Some text` is equivilant to `{line Some text}` which is also equivilant to doing `{text some text}` followed by `{newline}`.
+
 
 ### newline
 
@@ -86,7 +94,7 @@ These align the subsequent content to the left, center, or right. The alignment 
 
 ### text
 
-The `text` tag is used to insert a line of text into the document. The content of the text is provided as a parameter to the tag.
+The `text` tag is used to insert a string of text into the document. The content of the text is provided as a parameter to the tag.
 
 **Parameter:**
 
@@ -98,7 +106,8 @@ The `text` tag is used to insert a line of text into the document. The content o
 
 **Description:**
 
-*   The `text` tag directly inserts the provided string into the document as a line of text.
+*   The `text` tag directly inserts the provided string into the document as inline text.
+*   Any text following a `text` tag will appear on the same line.
 *   If the string contains braces, they should be escaped (e.g. `\{`).
 
 ### size

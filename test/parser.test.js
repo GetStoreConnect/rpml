@@ -210,11 +210,16 @@ describe('Parser', () => {
   });
 
   // Line Tag
-  it('parses line tag correctly', () => {
+  it('parses line tag without param', () => {
     const markup = `{line}`;
     const output = parse(markup);
+    expect(output).to.deep.equal([{ name: 'line', value: '' }]);
+  });
 
-    expect(output).to.deep.equal([{ name: 'line' }]);
+  it('parses line tag with param', () => {
+    const markup = `{line Some text}`;
+    const output = parse(markup);
+    expect(output).to.deep.equal([{ name: 'line', value: 'Some text' }]);
   });
 
   // Text Lines
@@ -582,6 +587,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'line',
@@ -589,6 +595,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'bold',
@@ -607,6 +614,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'line',
@@ -614,6 +622,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'line',
@@ -628,6 +637,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'table',
@@ -640,6 +650,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'bold',
@@ -731,6 +742,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'table',
@@ -764,6 +776,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'table',
@@ -783,6 +796,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'center',
@@ -798,6 +812,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'rule',
@@ -808,6 +823,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'bold',
