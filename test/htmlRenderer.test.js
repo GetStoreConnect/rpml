@@ -145,6 +145,16 @@ describe('HTML Renderer', () => {
     });
   });
 
+  describe('renderTextBlock', () => {
+    it('escapes HTML characters', () => {
+      const text = 'foo&bar';
+      const state = buildState();
+
+      const output = renderTextBlock({ text, state });
+      expect(output).to.include('foo&amp;bar');
+    });
+  });
+
   describe('renderRichContent', () => {
     it('routes to the correct render function based on command name', () => {
       const state = buildState();
@@ -247,7 +257,7 @@ describe('HTML Renderer', () => {
         attributes: {
           cols: 2,
           rows: [
-            ['Item', 'Price'],
+            ['Item', 'Price&Qty'],
             ['Product', '$10.99'],
           ],
         },
@@ -258,7 +268,7 @@ describe('HTML Renderer', () => {
       expect(output).to.include('<table class="rpml-table">');
       expect(output).to.include('<tr class="rpml-tr">');
       expect(output).to.include('Item');
-      expect(output).to.include('Price');
+      expect(output).to.include('Price&amp;Qty');
       expect(output).to.include('Product');
       expect(output).to.include('$10.99');
     });

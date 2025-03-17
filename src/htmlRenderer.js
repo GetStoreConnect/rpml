@@ -165,7 +165,7 @@ export function insertPendingText({ state }) {
 export function renderTextBlock({ text, state }) {
   const blockClasses = buildBlockClasses({ styles: state.styles });
   const contentClasses = buildContentClasses({ styles: state.styles });
-  return `<div class="${blockClasses}"><span class="${contentClasses}">${text}</span></div>`;
+  return `<div class="${blockClasses}"><span class="${contentClasses}">${escape(text)}</span></div>`;
 }
 
 export function renderRule({ command, state }) {
@@ -237,7 +237,7 @@ export function renderTableCell({ content, index, contentClasses, margin, comman
   const alignment = command.attributes.align ? command.attributes.align[index] : 'left';
   const widthPx = (state.docWidth / state.chars) * width;
   const widthStyle = `width: ${widthPx}px; max-width: ${widthPx}px; min-width: ${widthPx}px;`;
-  return `<td data-cols="${width}" class="${contentClasses} rpml-td" style="text-align: ${alignment}; ${widthStyle}">${content}</td>`;
+  return `<td data-cols="${width}" class="${contentClasses} rpml-td" style="text-align: ${alignment}; ${widthStyle}">${escape(content)}</td>`;
 }
 
 export function renderTableCellMargin({ contentClasses, margin, state }) {
@@ -317,6 +317,23 @@ export function wrapDocument({ state, fontFamily, fontSize, lineHeight }) {
       </body>
     </html>
   `;
+}
+
+function escape(text) {
+  return text.replace(/[&<>"']/g, function (match) {
+    switch (match) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case "'":
+        return '&#39;';
+    }
+  });
 }
 
 export const css = `
