@@ -64,7 +64,7 @@ const schema = {
     param: { type: 'number', default: 1 },
   },
   cut: {
-    param: { type: 'string', options: ['none', 'partial', 'full'], default: 'full' },
+    param: { type: 'string', options: ['partial', 'full'], default: 'full' },
   },
   barcode: {
     attributes: {

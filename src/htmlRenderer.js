@@ -1,3 +1,5 @@
+import { documentAttribute, addFinalCommands } from './commands.js';
+
 export function renderHtml(options) {
   const createCanvas = (width, height) => {
     const canvas = document.createElement('canvas');
@@ -15,7 +17,7 @@ export function renderHtmlWithCanvas({
   fontFamily = 'monospace',
   fontSize = '14px',
   lineHeight = '1.3em',
-  wordWrap = false,
+  wordWrap = undefined,
 }) {
   const styles = {
     alignment: 'left',
@@ -27,6 +29,10 @@ export function renderHtmlWithCanvas({
     small: false,
   };
 
+  if (wordWrap === undefined) {
+    wordWrap = documentAttribute({ commands, attributeName: 'wordWrap' });
+  }
+
   const docWidth = calculateDocWidth({ createCanvas, chars, fontFamily, fontSize });
 
   const state = {
@@ -37,6 +43,8 @@ export function renderHtmlWithCanvas({
     docWidth,
     wordWrap,
   };
+
+  commands = addFinalCommands(commands);
 
   for (const command of commands) {
     applyCommand({ command, state });

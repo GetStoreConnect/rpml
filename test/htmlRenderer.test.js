@@ -600,6 +600,8 @@ Layby Terms & Conditions
 <div class="rpml-block rpml-left rpml-size-1"><span class="">1) Maximum layby period 3 months</span></div>
 <div class="rpml-block rpml-left rpml-size-1"><span class="">2) Payments due every 2 weeks</span></div>
 <div class="rpml-block rpml-left rpml-size-1"><span class="">3) Cancellations incur 10% fee</span></div>
+<br><br><br><br><br><br>
+<div class="rpml-cut-partial"></div>
 
         </div>
       </body>
