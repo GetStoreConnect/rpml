@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { parse } from '../src/parser.js';
 import { printReceipt, printerModels, encodeCommand } from '../src/printer.js';
 
-describe('Thermal Printer Renderer', () => {
-  // Mock PrinterEncoder class from @point-of-sale/receipt-printer-encoder
+describe('Thermal Printer', () => {
+  // Mock ReceiptPrinterEncoder class from @point-of-sale/receipt-printer-encoder
   class MockPrinterEncoder {
     constructor(options) {
       this.options = options;
@@ -51,18 +51,13 @@ describe('Thermal Printer Renderer', () => {
       return this;
     }
 
+    font(value) {
+      this.commands.push(`font:${value}`);
+      return this;
+    }
+
     size(value) {
       this.commands.push(`size:${value}`);
-      return this;
-    }
-
-    height(value) {
-      this.commands.push(`height:${value}`);
-      return this;
-    }
-
-    width(value) {
-      this.commands.push(`width:${value}`);
       return this;
     }
 
@@ -76,10 +71,8 @@ describe('Thermal Printer Renderer', () => {
       return this;
     }
 
-    qrcode(data, model, size, errorLevel) {
-      this.commands.push(
-        `qrcode:${data}:model${model || ''}:size${size || ''}:error${errorLevel || ''}`
-      );
+    qrcode(data, { model, size, errorlevel }) {
+      this.commands.push(`qrcode:${data}:model=${model}:size=${size}:errorlevel=${errorlevel}`);
       return this;
     }
 
@@ -173,13 +166,15 @@ Test Receipt`;
       printer: printerModels.mPOP,
       device,
       createImage: createMockImage,
-      PrinterEncoder: MockPrinterEncoder,
+      createCanvas: 'createCanvas', // Stub for testing
+      ReceiptPrinterEncoder: MockPrinterEncoder,
     });
 
     expect(encoder).to.exist;
     expect(encoder.options.language).to.equal('star-prnt');
-    expect(encoder.options.width).to.equal(32);
+    expect(encoder.options.columns).to.equal(32);
     expect(encoder.options.wordWrap).to.be.true;
+    expect(encoder.options.createCanvas).to.equal('createCanvas');
 
     // Check if anything was transferred
     expect(device.transferOutCalls.length).to.be.greaterThan(0);
@@ -220,7 +215,7 @@ Small text
       printer: printerModels['TM-T88IV'],
       device,
       createImage: createMockImage,
-      PrinterEncoder: MockPrinterEncoder,
+      ReceiptPrinterEncoder: MockPrinterEncoder,
     });
     expect(encoder).to.exist;
 
@@ -234,8 +229,8 @@ Small text
     expect(commands).to.include('underline:false');
     expect(commands).to.include('invert:true');
     expect(commands).to.include('invert:false');
-    expect(commands).to.include('size:small');
-    expect(commands).to.include('size:normal');
+    expect(commands).to.include('font:B');
+    expect(commands).to.include('font:A');
   });
 
   it('renders images correctly', async () => {
@@ -253,7 +248,7 @@ Small text
       printer: printerModels.mPOP,
       device,
       createImage: createMockImage,
-      PrinterEncoder: MockPrinterEncoder,
+      ReceiptPrinterEncoder: MockPrinterEncoder,
     });
     expect(encoder).to.exist;
 
@@ -297,7 +292,7 @@ This should still render`;
         printer: printerModels.mPOP,
         device,
         createImage: createFailingMockImage,
-        PrinterEncoder: MockPrinterEncoder,
+        ReceiptPrinterEncoder: MockPrinterEncoder,
       });
       expect(encoder).to.exist;
 
@@ -329,7 +324,7 @@ This should still render`;
       printer: printerModels['TM-T88IV'],
       device,
       createImage: createMockImage,
-      PrinterEncoder: MockPrinterEncoder,
+      ReceiptPrinterEncoder: MockPrinterEncoder,
     });
     expect(encoder).to.exist;
 
@@ -352,7 +347,7 @@ This should still render`;
       printer: printerModels.mPOP,
       device,
       createImage: createMockImage,
-      PrinterEncoder: MockPrinterEncoder,
+      ReceiptPrinterEncoder: MockPrinterEncoder,
     });
     expect(encoder).to.exist;
 
@@ -376,7 +371,7 @@ This should still render`;
   data="https://example.com"
   size=6
   model=2
-  errorLevel=L
+  level=l
 }`;
 
     const device = new MockDevice();
@@ -385,7 +380,7 @@ This should still render`;
       printer: printerModels['TM-T88IV'],
       device,
       createImage: createMockImage,
-      PrinterEncoder: MockPrinterEncoder,
+      ReceiptPrinterEncoder: MockPrinterEncoder,
     });
     expect(encoder).to.exist;
 
@@ -394,8 +389,9 @@ This should still render`;
     const qrCommand = commands.find((cmd) => cmd.startsWith('qrcode:'));
     expect(qrCommand).to.exist;
     expect(qrCommand).to.include('https://example.com');
-    expect(qrCommand).to.include('model2');
-    expect(qrCommand).to.include('size6');
+    expect(qrCommand).to.include('model=2');
+    expect(qrCommand).to.include('size=6');
+    expect(qrCommand).to.include('errorlevel=l');
   });
 
   it('handles barcodes correctly', async () => {
@@ -414,7 +410,7 @@ This should still render`;
       printer: printerModels.mPOP,
       device,
       createImage: createMockImage,
-      PrinterEncoder: MockPrinterEncoder,
+      ReceiptPrinterEncoder: MockPrinterEncoder,
     });
     expect(encoder).to.exist;
 
@@ -459,7 +455,7 @@ Total: $32.97
       printer: printerModels['TM-T88IV'],
       device,
       createImage: createMockImage,
-      PrinterEncoder: MockPrinterEncoder,
+      ReceiptPrinterEncoder: MockPrinterEncoder,
     });
     expect(encoder).to.exist;
 

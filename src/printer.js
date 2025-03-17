@@ -54,16 +54,33 @@ const imageModes = {
   'esc-pos': 'raster',
 };
 
-// Designed to work with PrinterEncoder from thermal-printer-encoder package
-export async function printReceipt({ commands, printer, device, createImage, PrinterEncoder }) {
-  commands = addFinalCommands(commands);
+// Designed to work with ReceiptPrinterEncoder from @point-of-sale/receipt-printer-encoder
+export async function printReceipt({
+  commands,
+  printer,
+  device,
+  createImage,
+  createCanvas,
+  ReceiptPrinterEncoder,
+}) {
+  // These default to the browser behavior, but can be overridden if server-side
+  createImage ||= () => new Image();
+  createCanvas ||= (width, height) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    return canvas;
+  };
 
-  const encoder = new PrinterEncoder({
+  const encoder = new ReceiptPrinterEncoder({
     language: printer.language,
-    width: printer.chars,
+    columns: printer.chars,
     wordWrap: documentAttribute({ commands, attributeName: 'wordWrap' }),
     imageMode: imageModes[printer.language],
+    createCanvas,
   });
+
+  commands = addFinalCommands(commands);
 
   const images = await loadImages({ commands, createImage });
   sendReceiptCommands({ commands, images, printer, device, encoder });
@@ -102,32 +119,32 @@ export function encodeCommand({ command, encoder, images, printer }) {
     case 'italic':
       return encoder.italic(!command.off);
     case 'small':
-      return command.off ? encoder.size('normal') : encoder.size('small');
+      return command.off ? encoder.font('A') : encoder.font('B');
     case 'size':
-      return encoder.width(command.value).height(command.value);
+      return encoder.size(command.value);
     case 'text':
       return encoder.text(command.value || '');
     case 'line':
       return encoder.line(command.value || '');
 
     case 'image':
-      encoder = clearSize({ encoder });
+      encoder = resetSize({ encoder });
       return encodeImage({ command, encoder, images, printer });
 
     case 'rule':
-      encoder = clearSize({ encoder });
+      encoder = resetSize({ encoder });
       return encodeRule({ command, encoder, printer });
 
     case 'barcode':
-      encoder = clearSize({ encoder });
+      encoder = resetSize({ encoder });
       return encoder.raw(buildBarcode({ command, printer }));
 
     case 'qrcode':
-      encoder = clearSize({ encoder });
+      encoder = resetSize({ encoder });
       return encodeQrCode({ command, encoder });
 
     case 'table':
-      encoder = clearSize({ encoder });
+      encoder = resetSize({ encoder });
       const table = buildTable({ command, printer });
       return encoder.table(table.columns, table.rows);
 
@@ -144,8 +161,8 @@ export function encodeCommand({ command, encoder, images, printer }) {
   return encoder;
 }
 
-function clearSize({ encoder }) {
-  return encoder.height(undefined).width(undefined);
+function resetSize({ encoder }) {
+  return encoder.size(1);
 }
 
 function encodeRule({ command, encoder, printer }) {
@@ -157,11 +174,6 @@ function encodeRule({ command, encoder, printer }) {
   } else {
     return encoder.rule({ width: attributes.width || printer.chars, style: attributes.style });
   }
-}
-
-function encodeQrCode({ command, encoder }) {
-  const attributes = command.attributes;
-  return encoder.qrcode(attributes.data, attributes.model, attributes.size, attributes.errorLevel);
 }
 
 function encodeImage({ command, encoder, images, printer }) {
@@ -293,6 +305,15 @@ function buildBarcode({ command, printer }) {
     default:
       return '';
   }
+}
+
+function encodeQrCode({ command, encoder }) {
+  const attributes = command.attributes;
+  return encoder.qrcode(attributes.data, {
+    model: attributes.model,
+    size: attributes.size,
+    errorlevel: attributes.level,
+  });
 }
 
 async function loadImages({ commands, createImage }) {
