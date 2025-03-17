@@ -25,10 +25,14 @@ Defines the start of a document with optional configuration attributes. This tag
 **Attributes:**
 
 *   `word-wrap`: Enables word wrapping. Accepts `true` or `false`. Default is `false`.
+*   `bottom-margin`: The number of blank lines before the final cut. Default is `6`.
+*   `cut`: The type of final cut. Can be `full`, `partial`, or `none`. Default is `partial`.
+
 
 **Example:**
 
-    {document word-wrap=true}
+    {document word-wrap=true bottom-margin=5 cut=full}
+
 
 ### line
 
@@ -40,6 +44,18 @@ This has a blank line after it
 {line}
 This has a blank line before it
 ```
+
+### newline
+
+Adds a number of new lines.
+
+**Examples:**
+```rpml
+This has three blank lines after it
+{newline 3}
+This has three blank lines before it
+```
+
 
 ### bold, italic, underline, invert, small
 
@@ -228,6 +244,21 @@ Creates a horizontal rule with optional style and width.
 **Example:**
 
     {rule width=2 line='dashed' style='single'}
+
+### cut
+
+Cuts the receipt tape.
+
+**Options**
+* `full`: Performs a full cut. (Default)
+* `partial`: Performs  a full cut.
+
+**Example:**
+
+    Full cut:
+    {cut}
+    Partial cut:
+    {cut partial}
 
 Comments
 --------
