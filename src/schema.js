@@ -2,6 +2,8 @@ const schema = {
   document: {
     attributes: {
       wordWrap: { type: 'boolean', default: false },
+      bottomMargin: { type: 'number', default: 6 },
+      cut: { type: 'keyword', options: ['full', 'partial', 'none'], default: 'partial' },
     },
   },
   center: {},

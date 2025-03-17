@@ -1,3 +1,5 @@
+import schema from './schema.js';
+
 const barcodeTypeMap = {
   'star-prnt': {
     CODE128: 0x06,
@@ -59,7 +61,7 @@ export async function printReceipt({ commands, printer, device, createImage, Pri
   const encoder = new PrinterEncoder({
     language: printer.language,
     width: printer.chars,
-    wordWrap: getWordWrap({ commands }),
+    wordWrap: documentAttribute({ commands, attributeName: 'wordWrap' }),
     imageMode: imageModes[printer.language],
   });
 
@@ -70,21 +72,27 @@ export async function printReceipt({ commands, printer, device, createImage, Pri
 }
 
 export function addFinalCommands(commands) {
-  const lastCommand = commands[commands.length - 1];
-  if (lastCommand?.name == 'cut') {
-    return commands;
+  const finalCommands = [];
+
+  const bottomMargin = documentAttribute({ commands, attributeName: 'bottomMargin' });
+  if (bottomMargin > 0) {
+    finalCommands.push({ name: 'newline', value: bottomMargin });
   }
-  const finalCommands = [
-    { name: 'newline', value: 6 },
-    { name: 'cut', value: 'partial' },
-  ];
+
+  const cut = documentAttribute({ commands, attributeName: 'cut' });
+  if (cut !== 'none') {
+    finalCommands.push({ name: 'cut', value: cut });
+  }
+
   return [...commands, ...finalCommands];
 }
 
-export function getWordWrap({ commands }) {
-  const documentIndex = commands.findIndex((i) => i.name == 'document');
-  const documentCommand = commands[documentIndex];
-  return documentCommand ? documentCommand.attributes.wordWrap : false;
+export function documentAttribute({ commands, attributeName }) {
+  const command = commands.find((command) => command.name == 'document');
+  if (command && command.attributes[attributeName] !== undefined) {
+    return command.attributes[attributeName];
+  }
+  return schema.document.attributes[attributeName].default;
 }
 
 function sendReceiptCommands({ commands, images, printer, device, encoder }) {

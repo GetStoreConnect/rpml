@@ -10,6 +10,8 @@ describe('Parser', () => {
       {
         name: 'document',
         attributes: {
+          bottomMargin: 6,
+          cut: 'partial',
           wordWrap: true,
         },
       },
@@ -164,23 +166,6 @@ describe('Parser', () => {
         name: 'unknown',
         key: 'unknownCommand',
         attributes: 'someValue',
-      },
-    ]);
-  });
-
-  // Document Tag
-  it('parses document tag with boolean attribute', () => {
-    const markup = `{document
-        word-wrap=true
-      }`;
-    const output = parse(markup);
-
-    expect(output).to.deep.equal([
-      {
-        name: 'document',
-        attributes: {
-          wordWrap: true,
-        },
       },
     ]);
   });
@@ -379,14 +364,15 @@ describe('Parser', () => {
   });
 
   it('handles mixed case keywords correctly', () => {
-    const markup = '{DoCuMeNt WoRd-WrAp=true}';
+    const markup = '{RuLe LiNe=DaShEd}';
     const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
-        name: 'document',
+        name: 'rule',
         attributes: {
-          wordWrap: true,
+          line: 'dashed',
+          style: 'single',
         },
       },
     ]);
@@ -579,6 +565,8 @@ Layby Terms & Conditions
         name: 'document',
         attributes: {
           wordWrap: true,
+          bottomMargin: 6,
+          cut: 'partial',
         },
       },
       {

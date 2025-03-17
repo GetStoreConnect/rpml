@@ -161,11 +161,30 @@ describe('Thermal Printer Renderer', () => {
       ]);
     });
 
-    it("doesn't add final commands if it ends in a cut command", () => {
-      const commands = [{ name: 'cut', value: 'partial' }];
+    it('removes final cut through document attribute', () => {
+      const commands = [{ name: 'document', attributes: { cut: 'none' } }];
       const newCommands = addFinalCommands(commands);
+      expect(newCommands).to.deep.equal([...commands, { name: 'newline', value: 6 }]);
+    });
 
-      expect(newCommands).to.deep.equal([{ name: 'cut', value: 'partial' }]);
+    it('customize final cut through document attribute', () => {
+      const commands = [{ name: 'document', attributes: { cut: 'full' } }];
+      const newCommands = addFinalCommands(commands);
+      expect(newCommands).to.deep.equal([
+        ...commands,
+        { name: 'newline', value: 6 },
+        { name: 'cut', value: 'full' },
+      ]);
+    });
+
+    it('customize bottom margin through document attribute', () => {
+      const commands = [{ name: 'document', attributes: { bottomMargin: 3 } }];
+      const newCommands = addFinalCommands(commands);
+      expect(newCommands).to.deep.equal([
+        ...commands,
+        { name: 'newline', value: 3 },
+        { name: 'cut', value: 'partial' },
+      ]);
     });
   });
 
