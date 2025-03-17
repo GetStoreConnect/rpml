@@ -50,8 +50,12 @@ This is the second line
 This is the forth line, the third line is blank.
 ```
 
-Lines with only text are a shorthand for the `{line}` tag. For example, a line with `Some text` is equivilant to `{line Some text}` which is also equivilant to doing `{text some text}` followed by `{newline}`.
+**Description:**
 
+*   Lines with only text are a shorthand for the `{line}` tag. For example, a line with `Some text` is equivilant to `{line Some text}`
+*   The `{line Some text}` tag is a shorthand for `{text Some text}` followed by `{newline}`
+*   If the string contains braces, they should be escaped (e.g. `\{`).
+*   Whitespace is trimmed but can be included by wrapping the parameter in quotes: `{line " hello  "}`
 
 ### newline
 
@@ -109,6 +113,7 @@ The `text` tag is used to insert a string of text into the document. The content
 *   The `text` tag directly inserts the provided string into the document as inline text.
 *   Any text following a `text` tag will appear on the same line.
 *   If the string contains braces, they should be escaped (e.g. `\{`).
+*   Whitespace is trimmed but can be included by wrapping the parameter in quotes: `{text " hello  "}`
 
 ### size
 

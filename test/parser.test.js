@@ -230,6 +230,13 @@ describe('Parser', () => {
     expect(output).to.deep.equal([{ name: 'line', value: 'LAYBY DOCKET' }]);
   });
 
+  it('trims whitespace around text line', () => {
+    const markup = `  some text  `;
+    const output = parse(markup);
+
+    expect(output).to.deep.equal([{ name: 'line', value: 'some text' }]);
+  });
+
   // Left Tag
   it('parses left tag without attributes', () => {
     const markup = `{left}`;

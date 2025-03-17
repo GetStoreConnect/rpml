@@ -42,7 +42,7 @@ const schema = {
     param: { type: 'string', default: '' },
   },
   text: {
-    param: { type: 'string' },
+    param: { type: 'string', default: '' },
   },
   bold: {
     toggle: true,

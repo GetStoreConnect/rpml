@@ -75,7 +75,7 @@ export function endCommand(name) {
 export function lineCommand(match) {
   return {
     name: 'line',
-    value: match.groups.line,
+    value: match.groups.line.trim(),
   };
 }
 
