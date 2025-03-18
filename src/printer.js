@@ -1,4 +1,4 @@
-import { documentAttribute, addFinalCommands } from './commands.js';
+import { addFinalCommands } from './commands.js';
 
 const barcodeTypeMap = {
   'star-prnt': {
@@ -75,7 +75,6 @@ export async function printReceipt({
   const encoder = new ReceiptPrinterEncoder({
     language: printer.language,
     columns: printer.chars,
-    wordWrap: documentAttribute({ commands, attributeName: 'wordWrap' }),
     imageMode: imageModes[printer.language],
     createCanvas,
   });

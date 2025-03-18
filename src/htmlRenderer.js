@@ -17,7 +17,6 @@ export function renderHtmlWithCanvas({
   fontFamily = 'monospace',
   fontSize = '14px',
   lineHeight = '1.3em',
-  wordWrap = undefined,
 }) {
   const styles = {
     alignment: 'left',
@@ -29,10 +28,6 @@ export function renderHtmlWithCanvas({
     small: false,
   };
 
-  if (wordWrap === undefined) {
-    wordWrap = documentAttribute({ commands, attributeName: 'wordWrap' });
-  }
-
   const docWidth = calculateDocWidth({ createCanvas, chars, fontFamily, fontSize });
 
   const state = {
@@ -41,7 +36,6 @@ export function renderHtmlWithCanvas({
     styles,
     chars,
     docWidth,
-    wordWrap,
   };
 
   commands = addFinalCommands(commands);
@@ -303,7 +297,6 @@ export function buildBlockClasses({ styles }) {
 
 export function wrapDocument({ state, fontFamily, fontSize, lineHeight }) {
   const docStyles = `width: ${state.docWidth}px; margin: 0 auto;`;
-  const wordWrap = state.wordWrap ? 'word-wrap: break-word;' : '';
   const fontStyles = `font-family: ${fontFamily}; font-size: ${fontSize}; line-height: ${lineHeight};`;
   return `
     <html>
@@ -311,7 +304,7 @@ export function wrapDocument({ state, fontFamily, fontSize, lineHeight }) {
         <style>${css}</style>
       </head>
       <body class="rpml-body">
-        <div class="rpml-receipt" style="${docStyles}${wordWrap}${fontStyles}">
+        <div class="rpml-receipt" style="${docStyles}${fontStyles}">
           ${state.html}
         </div>
       </body>
@@ -347,9 +340,6 @@ export const css = `
     padding: 1em;
     background-color: white;
     color: black;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: break-all;
   }
 
   .rpml-block {

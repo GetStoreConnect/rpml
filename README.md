@@ -24,14 +24,13 @@ Defines the start of a document with optional configuration attributes. This tag
 
 **Attributes:**
 
-*   `word-wrap`: Enables word wrapping. Accepts `true` or `false`. Default is `false`.
 *   `bottom-margin`: The number of blank lines before the final cut. Default is `6`.
 *   `cut`: The type of final cut. Can be `full`, `partial`, or `none`. Default is `partial`.
-
+*   `word-wrap`: DEPRECATED: this option no longer has an effect.
 
 **Example:**
 
-    {document word-wrap=true bottom-margin=5 cut=full}
+    {document bottom-margin=5 cut=full}
 
 
 ### line
@@ -297,7 +296,7 @@ Complete Example
 
 Below is a complete example of a RPML document:
 
-    {document word-wrap=true}
+    {document}
     {# header }
     {center}
     {image

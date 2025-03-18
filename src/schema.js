@@ -1,7 +1,7 @@
 const schema = {
   document: {
     attributes: {
-      wordWrap: { type: 'boolean', default: false },
+      wordWrap: { type: 'boolean', default: false }, // DEPRECATED
       bottomMargin: { type: 'number', default: 6 },
       cut: { type: 'keyword', options: ['full', 'partial', 'none'], default: 'partial' },
     },

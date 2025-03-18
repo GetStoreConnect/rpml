@@ -3,7 +3,7 @@ import { parse } from '../src/parser.js';
 
 describe('Parser', () => {
   it('parses basic commands', () => {
-    const markup = '{document word-wrap=true}';
+    const markup = '{document}';
     const output = parse(markup);
 
     expect(output).to.deep.equal([
@@ -12,14 +12,14 @@ describe('Parser', () => {
         attributes: {
           bottomMargin: 6,
           cut: 'partial',
-          wordWrap: true,
+          wordWrap: false,
         },
       },
     ]);
   });
 
   it('ignores comments', () => {
-    const markup = '{# this is a comment }\n{document word-wrap=true}';
+    const markup = '{# this is a comment }\n{document}';
     const output = parse(markup);
 
     expect(output.length).to.equal(1);
@@ -441,9 +441,6 @@ Some text
 
   it('correctly parses the entire RPML markup', () => {
     const markup = `
-{document
-  word-wrap=true
-}
 {# header }
 {center}
 {image
@@ -573,14 +570,6 @@ Layby Terms & Conditions
     const output = parse(markup);
 
     const expectedOutput = [
-      {
-        name: 'document',
-        attributes: {
-          wordWrap: true,
-          bottomMargin: 6,
-          cut: 'partial',
-        },
-      },
       {
         name: 'center',
       },

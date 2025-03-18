@@ -155,7 +155,6 @@ describe('Thermal Printer', () => {
 
   it('initializes the encoder with correct printer settings', async () => {
     const markup = `
-{document word-wrap=true}
 {center}
 {line}
 Test Receipt`;
@@ -173,7 +172,6 @@ Test Receipt`;
     expect(encoder).to.exist;
     expect(encoder.options.language).to.equal('star-prnt');
     expect(encoder.options.columns).to.equal(32);
-    expect(encoder.options.wordWrap).to.be.true;
     expect(encoder.options.createCanvas).to.equal('createCanvas');
 
     // Check if anything was transferred

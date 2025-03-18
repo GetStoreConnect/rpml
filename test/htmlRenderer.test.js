@@ -29,7 +29,6 @@ describe('HTML Renderer', () => {
     styles: buildStyles(),
     chars: 32,
     docWidth: 300,
-    wordWrap: false,
     pendingText: '',
     ...state,
   });
@@ -405,7 +404,6 @@ describe('HTML Renderer', () => {
       const state = {
         html: '<div>Test Content</div>',
         docWidth: 300,
-        wordWrap: true,
       };
 
       const output = wrapDocument({
@@ -418,7 +416,6 @@ describe('HTML Renderer', () => {
       expect(output).to.include('<html>');
       expect(output).to.include('<body class="rpml-body">');
       expect(output).to.include('width: 300px');
-      expect(output).to.include('word-wrap: break-word');
       expect(output).to.include('font-family: Arial');
       expect(output).to.include('font-size: 12px');
       expect(output).to.include('<div>Test Content</div>');
@@ -428,7 +425,7 @@ describe('HTML Renderer', () => {
   describe('renderHtmlWithCanvas', () => {
     it('renders a simple document', () => {
       const commands = [
-        { name: 'document', attributes: { wordWrap: true, bottomMargin: 3, cut: 'full' } },
+        { name: 'document', attributes: { bottomMargin: 3, cut: 'full' } },
         { name: 'text', value: 'Hello' },
       ];
       const output = renderHtmlWithCanvas({ commands, createCanvas });
@@ -439,7 +436,7 @@ describe('HTML Renderer', () => {
         <style>${css}</style>
       </head>
       <body class="rpml-body">
-        <div class="rpml-receipt" style="width: 269.71875px; margin: 0 auto;word-wrap: break-word;font-family: monospace; font-size: 14px; line-height: 1.3em;">
+        <div class="rpml-receipt" style="width: 269.71875px; margin: 0 auto;font-family: monospace; font-size: 14px; line-height: 1.3em;">
           ${renderTextBlock({ text: 'Hello', state: buildState() })}
 <br><br>${renderCut({ command: { name: 'cut', value: 'full' } })}
 
