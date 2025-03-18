@@ -1,6 +1,6 @@
 import { parse } from './parser.js';
 import { renderHtml } from './htmlRenderer.js';
-import { printReceipt } from './printer.js';
+import { printReceipt, printerModels } from './printer.js';
 
 export function parseAndRenderHtml(markup, renderOptions = {}) {
   const commands = parse(markup);
@@ -17,4 +17,4 @@ export function parseAndPrintReceipt(markup, printOptions = {}) {
   return printReceipt({ commands, ...printOptions });
 }
 
-export { parse, renderHtml, printReceipt };
+export { parse, renderHtml, printReceipt, printerModels };
