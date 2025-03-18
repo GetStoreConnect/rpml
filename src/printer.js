@@ -83,21 +83,19 @@ export async function printReceipt({
   commands = addFinalCommands(commands);
 
   const images = await loadImages({ commands, createImage });
-  sendReceiptCommands({ commands, images, printer, device, encoder });
+  await sendReceiptCommands({ commands, images, printer, device, encoder });
 
   return encoder;
 }
 
-function sendReceiptCommands({ commands, images, printer, device, encoder }) {
+async function sendReceiptCommands({ commands, images, printer, device, encoder }) {
   encoder = encoder.initialize();
 
   for (const command of commands) {
     encoder = encodeCommand({ command, encoder, images, printer });
   }
 
-  device.transferOut(1, encoder.encode()).catch((error) => {
-    console.log(`printReceipt: ${error}`);
-  });
+  await device.transferOut(1, encoder.encode());
 }
 
 export function encodeCommand({ command, encoder, images, printer }) {
