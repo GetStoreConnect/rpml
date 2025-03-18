@@ -1,12 +1,13 @@
 import { expect } from 'chai';
 import { parse } from '../src/parser.js';
-import { printReceipt, printerModels, encodeCommand } from '../src/printer.js';
+import { encodeReceipt } from '../src/printer.js';
 
-describe('Thermal Printer', () => {
+describe('Printer Encoder', () => {
   // Mock ReceiptPrinterEncoder class from @point-of-sale/receipt-printer-encoder
   class MockPrinterEncoder {
-    constructor(options) {
-      this.options = options;
+    constructor({ columns = 32, language = 'esc-pos' } = {}) {
+      this.columns = columns;
+      this.language = language;
       this.commands = [];
       this.encodedCommands = Buffer.from([]);
     }
@@ -81,8 +82,8 @@ describe('Thermal Printer', () => {
       return this;
     }
 
-    newline() {
-      this.commands.push('newline');
+    newline(amount = 1) {
+      this.commands.push(`newline:${amount}`);
       return this;
     }
 
@@ -131,62 +132,25 @@ describe('Thermal Printer', () => {
   const createMockImage = () => new MockImage();
   const createFailingMockImage = () => new MockImage({ mockFailure: true });
 
-  class MockDevice {
-    constructor() {
-      this.transferOutCalls = [];
-    }
-
-    transferOut(endpoint, data) {
-      this.transferOutCalls.push({ endpoint, data });
-      return Promise.resolve(true);
-    }
-  }
-
-  describe('encodeCommand', () => {
-    it('does nothing if cut is none', () => {
-      const encoder = new MockPrinterEncoder();
-      const command = { name: 'cut', value: 'none' };
-      const newEncoder = encodeCommand({ command, encoder });
-
-      expect(newEncoder).to.equal(encoder);
-      expect(encoder.commands).to.deep.equal([]);
-    });
-  });
-
   it('initializes the encoder with correct printer settings', async () => {
     const markup = `
 {center}
 {line}
 Test Receipt`;
 
-    const device = new MockDevice();
-    const encoder = await printReceipt({
+    const encoder = await encodeReceipt({
       commands: parse(markup),
-      printer: printerModels.mPOP,
-      device,
-      createImage: createMockImage,
-      createCanvas: 'createCanvas', // Stub for testing
-      ReceiptPrinterEncoder: MockPrinterEncoder,
+      encoder: new MockPrinterEncoder(),
     });
 
-    expect(encoder).to.exist;
-    expect(encoder.options.language).to.equal('star-prnt');
-    expect(encoder.options.columns).to.equal(32);
-    expect(encoder.options.createCanvas).to.equal('createCanvas');
-
-    // Check if anything was transferred
-    expect(device.transferOutCalls.length).to.be.greaterThan(0);
-
-    if (device.transferOutCalls.length > 0) {
-      expect(device.transferOutCalls[0].endpoint).to.equal(1);
-    } else {
-      console.log('Debug: No transferOut calls were made');
-    }
-
-    expect(encoder.commands).to.include('initialize');
-    expect(encoder.commands).to.include('align:center');
-    expect(encoder.commands).to.include('line:Test Receipt');
-    expect(encoder.commands).to.include('cut:partial');
+    expect(encoder.commands).to.deep.eq([
+      'initialize',
+      'align:center',
+      'line:',
+      'line:Test Receipt',
+      'newline:6',
+      'cut:partial',
+    ]);
   });
 
   it('handles text formatting commands correctly', async () => {
@@ -207,15 +171,10 @@ Inverted text
 Small text
 {endSmall}`;
 
-    const device = new MockDevice();
-    const encoder = await printReceipt({
+    const encoder = await encodeReceipt({
       commands: parse(markup),
-      printer: printerModels['TM-T88IV'],
-      device,
-      createImage: createMockImage,
-      ReceiptPrinterEncoder: MockPrinterEncoder,
+      encoder: new MockPrinterEncoder(),
     });
-    expect(encoder).to.exist;
 
     const commands = encoder.commands;
 
@@ -240,24 +199,18 @@ Small text
   dither=atkinson
 }`;
 
-    const device = new MockDevice();
-    const encoder = await printReceipt({
+    const encoder = await encodeReceipt({
       commands: parse(markup),
-      printer: printerModels.mPOP,
-      device,
+      encoder: new MockPrinterEncoder(),
       createImage: createMockImage,
-      ReceiptPrinterEncoder: MockPrinterEncoder,
+      dots: 360,
     });
     expect(encoder).to.exist;
 
     const commands = encoder.commands;
 
     const imageCommand = commands.find((cmd) => cmd.startsWith('image:'));
-    expect(imageCommand).to.exist;
     expect(imageCommand).to.include('atkinson');
-
-    // Verify the image was loaded with correct source
-    expect(device.transferOutCalls.length).to.equal(1);
   });
 
   describe('stubbing console.error', () => {
@@ -284,24 +237,15 @@ Small text
 {line}
 This should still render`;
 
-      const device = new MockDevice();
-      const encoder = await printReceipt({
+      const encoder = await encodeReceipt({
         commands: parse(markup),
-        printer: printerModels.mPOP,
-        device,
+        encoder: new MockPrinterEncoder(),
         createImage: createFailingMockImage,
-        ReceiptPrinterEncoder: MockPrinterEncoder,
+        dots: 360,
       });
-      expect(encoder).to.exist;
+      expect(encoder.commands).to.include('line:This should still render');
 
       expect(errorOutput).to.include('Error: Mock image load error');
-
-      expect(device.transferOutCalls.length).to.equal(1);
-
-      const commands = encoder.commands;
-
-      // The line command should still be processed despite image error
-      expect(commands).to.include('line:This should still render');
     });
   });
 
@@ -316,18 +260,12 @@ This should still render`;
   row=["Product 1", "2", "$10.00"]
 }`;
 
-    const device = new MockDevice();
-    const encoder = await printReceipt({
+    const encoder = await encodeReceipt({
       commands: parse(markup),
-      printer: printerModels['TM-T88IV'],
-      device,
-      createImage: createMockImage,
-      ReceiptPrinterEncoder: MockPrinterEncoder,
+      encoder: new MockPrinterEncoder(),
     });
-    expect(encoder).to.exist;
 
     const commands = encoder.commands;
-
     const tableCommand = commands.find((cmd) => cmd.startsWith('table:'));
     expect(tableCommand).to.exist;
     expect(tableCommand).to.include('3x2'); // 3 columns, 2 rows
@@ -339,15 +277,10 @@ This should still render`;
 {rule line=dashed width=20}
 {rule line=dashed style=double width=10}`;
 
-    const device = new MockDevice();
-    const encoder = await printReceipt({
+    const encoder = await encodeReceipt({
       commands: parse(markup),
-      printer: printerModels.mPOP,
-      device,
-      createImage: createMockImage,
-      ReceiptPrinterEncoder: MockPrinterEncoder,
+      encoder: new MockPrinterEncoder({ columns: 32 }),
     });
-    expect(encoder).to.exist;
 
     const commands = encoder.commands;
 
@@ -364,7 +297,6 @@ This should still render`;
 
   it('renders QR codes correctly', async () => {
     const markup = `
-{center}
 {qrcode
   data="https://example.com"
   size=6
@@ -372,18 +304,12 @@ This should still render`;
   level=l
 }`;
 
-    const device = new MockDevice();
-    const encoder = await printReceipt({
+    const encoder = await encodeReceipt({
       commands: parse(markup),
-      printer: printerModels['TM-T88IV'],
-      device,
-      createImage: createMockImage,
-      ReceiptPrinterEncoder: MockPrinterEncoder,
+      encoder: new MockPrinterEncoder(),
     });
-    expect(encoder).to.exist;
 
     const commands = encoder.commands;
-
     const qrCommand = commands.find((cmd) => cmd.startsWith('qrcode:'));
     expect(qrCommand).to.exist;
     expect(qrCommand).to.include('https://example.com');
@@ -394,7 +320,6 @@ This should still render`;
 
   it('handles barcodes correctly', async () => {
     const markup = `
-{center}
 {barcode
   data="12345678"
   type="CODE128"
@@ -402,15 +327,10 @@ This should still render`;
   position="below"
 }`;
 
-    const device = new MockDevice();
-    const encoder = await printReceipt({
+    const encoder = await encodeReceipt({
       commands: parse(markup),
-      printer: printerModels.mPOP,
-      device,
-      createImage: createMockImage,
-      ReceiptPrinterEncoder: MockPrinterEncoder,
+      encoder: new MockPrinterEncoder(),
     });
-    expect(encoder).to.exist;
 
     const commands = encoder.commands;
     const barcodeCommand = commands.find((cmd) => cmd.startsWith('raw:'));
@@ -447,17 +367,10 @@ Total: $32.97
 {center}
 {qrcode data="receipt-id-123" size=4}`;
 
-    const device = new MockDevice();
-    const encoder = await printReceipt({
+    const encoder = await encodeReceipt({
       commands: parse(markup),
-      printer: printerModels['TM-T88IV'],
-      device,
-      createImage: createMockImage,
-      ReceiptPrinterEncoder: MockPrinterEncoder,
+      encoder: new MockPrinterEncoder(),
     });
-    expect(encoder).to.exist;
-
-    expect(device.transferOutCalls.length).to.equal(1);
 
     const commands = encoder.commands;
 

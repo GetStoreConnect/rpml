@@ -34,70 +34,28 @@ const barcodePositionMap = {
   },
 };
 
-export const printerModels = {
-  mPOP: {
-    language: 'star-prnt',
-    chars: 32,
-    dots: 360,
-    imageMode: 'dither',
-  },
-  'TM-T88IV': {
-    language: 'esc-pos',
-    chars: 42,
-    dots: 512,
-    imageMode: 'raster',
-  },
-};
-
-const imageModes = {
-  'star-prnt': 'dither',
-  'esc-pos': 'raster',
-};
-
 // Designed to work with ReceiptPrinterEncoder from @point-of-sale/receipt-printer-encoder
-export async function printReceipt({
-  commands,
-  printer,
-  device,
-  createImage,
-  createCanvas,
-  ReceiptPrinterEncoder,
-}) {
-  // These default to the browser behavior, but can be overridden if server-side
+export async function encodeReceipt({ commands, encoder, dots, createImage = null }) {
   createImage ||= () => new Image();
-  createCanvas ||= (width, height) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    return canvas;
-  };
-
-  const encoder = new ReceiptPrinterEncoder({
-    language: printer.language,
-    columns: printer.chars,
-    imageMode: imageModes[printer.language],
-    createCanvas,
-  });
-
-  commands = addFinalCommands(commands);
 
   const images = await loadImages({ commands, createImage });
-  await sendReceiptCommands({ commands, images, printer, device, encoder });
+
+  return encodeCommands({ commands, encoder, dots, images });
+}
+
+export function encodeCommands({ commands, encoder, dots, images }) {
+  commands = addFinalCommands(commands);
+
+  encoder = encoder.initialize();
+
+  for (const command of commands) {
+    encoder = encodeCommand({ command, encoder, dots, images });
+  }
 
   return encoder;
 }
 
-async function sendReceiptCommands({ commands, images, printer, device, encoder }) {
-  encoder = encoder.initialize();
-
-  for (const command of commands) {
-    encoder = encodeCommand({ command, encoder, images, printer });
-  }
-
-  await device.transferOut(1, encoder.encode());
-}
-
-export function encodeCommand({ command, encoder, images, printer }) {
+export function encodeCommand({ command, encoder, dots, images }) {
   switch (command.name) {
     case 'document':
       return encoder; // Do nothing for document command
@@ -126,15 +84,15 @@ export function encodeCommand({ command, encoder, images, printer }) {
 
     case 'image':
       encoder = resetSize({ encoder });
-      return encodeImage({ command, encoder, images, printer });
+      return encodeImage({ command, encoder, dots, images });
 
     case 'rule':
       encoder = resetSize({ encoder });
-      return encodeRule({ command, encoder, printer });
+      return encodeRule({ command, encoder });
 
     case 'barcode':
       encoder = resetSize({ encoder });
-      return encoder.raw(buildBarcode({ command, printer }));
+      return encoder.raw(buildBarcode({ command, language: encoder.language }));
 
     case 'qrcode':
       encoder = resetSize({ encoder });
@@ -142,14 +100,14 @@ export function encodeCommand({ command, encoder, images, printer }) {
 
     case 'table':
       encoder = resetSize({ encoder });
-      const table = buildTable({ command, printer });
+      const table = buildTable({ command, width: encoder.columns });
       return encoder.table(table.columns, table.rows);
 
     case 'newline':
       return encoder.newline(command.value);
 
     case 'cut':
-      return command.value === 'none' ? encoder : encoder.cut(command.value);
+      return encoder.cut(command.value);
 
     default:
       console.log(`Unknown command type: ${command.name}`);
@@ -162,18 +120,18 @@ function resetSize({ encoder }) {
   return encoder.size(1);
 }
 
-function encodeRule({ command, encoder, printer }) {
+function encodeRule({ command, encoder }) {
   const attributes = command.attributes;
+  const width = attributes.width || encoder.columns;
   if (attributes.line == 'dashed') {
-    let character = attributes.style == 'double' ? '=' : '-';
-
-    return encoder.line(character.repeat(attributes.width || printer.chars));
+    const character = attributes.style == 'double' ? '=' : '-';
+    return encoder.line(character.repeat(width));
   } else {
-    return encoder.rule({ width: attributes.width || printer.chars, style: attributes.style });
+    return encoder.rule({ width, style: attributes.style });
   }
 }
 
-function encodeImage({ command, encoder, images, printer }) {
+function encodeImage({ command, encoder, dots, images }) {
   const attributes = command.attributes;
 
   const image = images[attributes.src];
@@ -187,7 +145,7 @@ function encodeImage({ command, encoder, images, printer }) {
   if (attributes.size) {
     // size is a percentage of the width
     // calculate the width based on the percentage of printer width (dots)
-    width = parseInt((attributes.size / 100) * printer.dots);
+    width = parseInt((attributes.size / 100) * dots);
 
     // calculate the height based on the aspect ratio of the image
     height = parseInt((image.height / image.width) * width);
@@ -200,12 +158,12 @@ function encodeImage({ command, encoder, images, printer }) {
   return encoder.image(image, width, height, attributes.dither);
 }
 
-function buildTable({ command, printer }) {
+function buildTable({ command, width }) {
   const attributes = command.attributes;
   const margin = attributes.margin || 0;
-  const splitWidth = parseInt(printer.chars / attributes.cols);
+  const splitWidth = parseInt(width / attributes.cols);
   const columns = [];
-  let widthAvailable = printer.chars;
+  let widthAvailable = width;
 
   for (let i = 0; i < attributes.cols; i++) {
     const align = attributes.align ? attributes.align[i] : 'left';
@@ -250,9 +208,8 @@ function buildTable({ command, printer }) {
   return { columns, rows: attributes.rows };
 }
 
-function buildBarcode({ command, printer }) {
+function buildBarcode({ command, language }) {
   const attributes = command.attributes;
-  const language = printer.language;
   const type = barcodeTypeMap[language][attributes.type.toUpperCase()];
   const position = barcodePositionMap[language][attributes.position];
 
