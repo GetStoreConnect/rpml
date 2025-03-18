@@ -1,6 +1,6 @@
 import { parse } from './parser.js';
 import { renderHtml } from './htmlRenderer.js';
-import { encodeReceipt } from './printer.js';
+import { encodeReceipt } from './printerEncoder.js';
 
 export function parseAndRenderHtml(markup, renderOptions = {}) {
   const commands = parse(markup);

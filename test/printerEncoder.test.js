@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { parse } from '../src/parser.js';
-import { encodeReceipt } from '../src/printer.js';
+import { encodeReceipt } from '../src/printerEncoder.js';
 
 describe('Printer Encoder', () => {
   // Mock ReceiptPrinterEncoder class from @point-of-sale/receipt-printer-encoder
