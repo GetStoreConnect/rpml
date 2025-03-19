@@ -1,23 +1,21 @@
-import { documentAttribute, addFinalCommands } from './commands.js';
+import { addFinalCommands } from './commands.js';
 
-export function renderHtml(options) {
-  const createCanvas = (width, height) => {
+export function renderHtml({
+  commands,
+  chars = 32,
+  fontFamily = 'monospace',
+  fontSize = '14px',
+  lineHeight = '1.3em',
+  createCanvas = null,
+}) {
+  // Default to browser canvas but can be overridden for server-side rendering
+  createCanvas ||= (width, height) => {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
     return canvas;
   };
-  return renderHtmlWithCanvas({ createCanvas, ...options });
-}
 
-export function renderHtmlWithCanvas({
-  commands,
-  createCanvas,
-  chars = 32,
-  fontFamily = 'monospace',
-  fontSize = '14px',
-  lineHeight = '1.3em',
-}) {
   const styles = {
     alignment: 'left',
     size: 1,

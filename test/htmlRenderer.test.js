@@ -11,7 +11,7 @@ import {
   css,
   renderBarcode,
   renderCut,
-  renderHtmlWithCanvas,
+  renderHtml,
   renderImage,
   renderQRCode,
   renderRichContent,
@@ -422,13 +422,13 @@ describe('HTML Renderer', () => {
     });
   });
 
-  describe('renderHtmlWithCanvas', () => {
+  describe('renderHtml', () => {
     it('renders a simple document', () => {
       const commands = [
         { name: 'document', attributes: { bottomMargin: 3, cut: 'full' } },
         { name: 'text', value: 'Hello' },
       ];
-      const output = renderHtmlWithCanvas({ commands, createCanvas });
+      const output = renderHtml({ commands, createCanvas });
 
       const expectedOutput = `
     <html>
