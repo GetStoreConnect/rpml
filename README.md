@@ -23,14 +23,14 @@ This JavaScript package allows you to do the following.
 ### Installation
 
 ```
-npm install rpml-utils
+npm install rpml
 ```
 
 
 ### Parse RPML into commands
 
 ```js
-import { parse } from 'rpml-utils'
+import { parse } from 'rpml'
 
 const commands = parse('Some RPML markup')
 ```
@@ -45,7 +45,7 @@ Use `renderHtml` to convert the commands into an HTML document for previewing.
 This is a full HTML document that is best shown using an iframe.
 
 ```js
-import { parse, renderHtml } from 'rpml-utils'
+import { parse, renderHtml } from 'rpml'
 
 const commands = parse('Some RPML markup')
 const html = renderHtml({commands})
@@ -54,7 +54,7 @@ const html = renderHtml({commands})
 Or parse and render in one call.
 
 ```js
-import { parseAndRenderHtml } from 'rpml-utils'
+import { parseAndRenderHtml } from 'rpml'
 
 const html = parseAndRenderHtml('Some RPML markup')
 ```
@@ -74,7 +74,7 @@ The `encodeReceipt` function will apply the parsed commands to Receipt Printer E
 
 ```js
 import ReceiptPrinterEncoder from '@point-of-sale/receipt-printer-encoder'
-import { parse, encodeReceipt } from 'rpml-utils'
+import { parse, encodeReceipt } from 'rpml'
 
 // Instantiate the encoder
 let encoder = new ReceiptPrinterEncoder({

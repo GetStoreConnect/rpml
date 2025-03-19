@@ -1,5 +1,5 @@
 {
-  "name": "rpml-utils",
+  "name": "rpml",
   "version": "0.1.0",
   "description": "Utilities for Receipt Printer Markup Language (RPML)",
   "main": "src/index.js",
