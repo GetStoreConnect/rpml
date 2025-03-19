@@ -5,10 +5,10 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "test": "mocha test/*.test.js test/**/*.test.js",
+    "test": "mocha 'test/**/*.test.js'",
     "build": "node ./build.js"
   },
-  "author": "Your Name",
+  "author": "StoreConnect",
   "license": "MIT",
   "keywords": [],
   "devDependencies": {
