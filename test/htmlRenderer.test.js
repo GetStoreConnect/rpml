@@ -46,13 +46,24 @@ describe('HTML Renderer', () => {
 
   describe('calculateDocWidth', () => {
     it('correctly calculates document width based on character count', () => {
+      // Mock canvas context with predetermined width measurement
+      const mockContext = {
+        // Each character is 10px wide in our mock
+        measureText: (text) => ({ width: text.length * 10 }),
+      };
+
+      const mockCreateCanvas = () => ({
+        getContext: () => mockContext,
+      });
+
       const width = calculateDocWidth({
-        createCanvas,
+        createCanvas: mockCreateCanvas,
         chars: 32,
         fontFamily: 'monospace',
         fontSize: '14px',
       });
 
+      expect(width).to.equal(320); // 32 chars * 10px
       expect(width).to.be.a('number');
       expect(width).to.be.greaterThan(0);
     });
