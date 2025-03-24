@@ -295,7 +295,6 @@ Complete Example
 
 Below is a complete example of a RPML document:
 
-    {document}
     {# header }
     {center}
     {image
