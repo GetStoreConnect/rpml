@@ -1,12 +1,21 @@
+import { addFinalCommands } from './commands.js';
+
 export function renderHtml({
   commands,
-  createCanvas,
   chars = 32,
   fontFamily = 'monospace',
   fontSize = '14px',
   lineHeight = '1.3em',
-  wordWrap = false,
+  createCanvas = null,
 }) {
+  // Default to browser canvas but can be overridden for server-side rendering
+  createCanvas ||= (width, height) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    return canvas;
+  };
+
   const styles = {
     alignment: 'left',
     size: 1,
@@ -21,16 +30,19 @@ export function renderHtml({
 
   const state = {
     html: '',
-    previousContentCommand: null,
+    pendingText: '',
     styles,
     chars,
     docWidth,
-    wordWrap,
   };
+
+  commands = addFinalCommands(commands);
 
   for (const command of commands) {
     applyCommand({ command, state });
   }
+
+  insertPendingText({ state });
 
   return wrapDocument({ state, fontFamily, fontSize, lineHeight });
 }
@@ -47,8 +59,7 @@ export function calculateDocWidth({ createCanvas, chars, fontFamily, fontSize })
 export function applyCommand({ command, state }) {
   switch (command.name) {
     case 'document':
-      state.wordWrap = command.attributes.wordWrap;
-      break;
+      break; // Document attributes are handled earlier
     case 'left':
       state.styles.alignment = command.name;
       break;
@@ -76,71 +87,82 @@ export function applyCommand({ command, state }) {
     case 'small':
       state.styles.small = command.off === true ? false : true;
       break;
-    case 'line':
     case 'text':
-      applyContentCommand({ command, state });
+      state.pendingText += command.value;
+      break;
+    case 'line':
+      applyLineCommand({ command, state });
+      break;
+    case 'newline':
+      applyNewlineCommand({ command, state });
       break;
     default:
-      state.styles.size = 1;
-      applyContentCommand({ command, state });
+      applyRichContentCommand({ command, state });
       break;
   }
 }
 
-export function applyContentCommand({ command, state }) {
-  state.html += renderContent({ command, state }) + '\n';
-  state.previousContentCommand = command;
+export function applyLineCommand({ command, state }) {
+  const text = state.pendingText + (command.value || '');
+  state.html += renderTextBlock({ text, state });
+  state.pendingText = '';
 }
 
-export function renderContent({ command, state }) {
+export function applyNewlineCommand({ command, state }) {
+  let amount = command.value;
+  if (state.pendingText) {
+    insertPendingText({ state });
+    amount -= 1;
+  }
+  for (let i = 0; i < amount; i++) {
+    state.html += '<br>';
+  }
+}
+
+export function applyRichContentCommand({ command, state }) {
+  insertPendingText({ state });
+  state.styles.size = 1;
+  state.html += renderRichContent({ command, state }) + '\n';
+}
+
+export function renderRichContent({ command, state }) {
   const styles = state.styles;
 
   switch (command.name) {
-    case 'image':
-      return renderImage({ command, styles });
-    case 'line':
-      return renderLine({ command, state });
-    case 'text':
-      return renderText({ command, styles });
     case 'rule':
       return renderRule({ command, state });
+    case 'image':
+      return renderImage({ command, styles });
     case 'table':
       return renderTable({ command, state });
     case 'barcode':
       return renderBarcode({ command, styles });
     case 'qrcode':
       return renderQRCode({ command, styles });
+    case 'cut':
+      return renderCut({ command });
     default:
       throw new Error(`Unknown command: ${command.name}`);
   }
 }
 
-export function renderImage({ command, styles }) {
-  const widthAttribute = command.attributes.size ? `width="${command.attributes.size}%"` : '';
-  const blockClasses = buildBlockClasses({ command, styles });
-  return `<div class="${blockClasses} rpml-img-wrapper"><img class="rpml-img" src="${command.attributes.src}" ${widthAttribute}></div>`;
-}
-
-export function renderLine({ command, state }) {
-  if (state.previousContentCommand?.name == 'text') {
-    return '<br>';
+export function insertPendingText({ state }) {
+  if (!state.pendingText) {
+    return;
   }
-
-  const blockClasses = buildBlockClasses({ command, styles: state.styles });
-  const contentClasses = buildContentClasses({ styles: state.styles });
-  const value = command.value || '';
-  return `<div class="${blockClasses}"><span class="${contentClasses}">${value}</span></div>`;
+  state.html += renderTextBlock({ text: state.pendingText, state }) + '\n';
+  state.pendingText = '';
 }
 
-export function renderText({ command, styles }) {
-  const contentClasses = buildContentClasses({ styles });
-  const value = command.value || '';
-  return `<span class="${contentClasses}">${value}</span>`;
+export function renderTextBlock({ text, state }) {
+  const blockClasses = buildBlockClasses({ styles: state.styles });
+  const contentClasses = buildContentClasses({ styles: state.styles });
+  return `<div class="${blockClasses}"><span class="${contentClasses}">${escape(text)}</span></div>`;
 }
 
 export function renderRule({ command, state }) {
   const charCount = state.chars;
-  const blockClasses = buildBlockClasses({ command, styles: state.styles });
+  const blockClasses = buildBlockClasses({ styles: state.styles });
 
   if (command.attributes.line == 'dashed') {
     const char = command.attributes.styles == 'double' ? '=' : '-';
@@ -154,6 +176,12 @@ export function renderRule({ command, state }) {
     const doubleStyle = ` ${command.attributes.style == 'double' ? 'border-bottom: 1px solid black; height: 3px;' : ''}`;
     return `<div class="${blockClasses} rpml-rule" style="position:relative;"><div class="rpml-rule-solid" style="width: ${width};${doubleStyle}"></div></div>`;
   }
+}
+
+export function renderImage({ command, styles }) {
+  const widthAttribute = command.attributes.size ? `width="${command.attributes.size}%"` : '';
+  const blockClasses = buildBlockClasses({ styles });
+  return `<div class="${blockClasses} rpml-img-wrapper"><img class="rpml-img" src="${command.attributes.src}" ${widthAttribute}></div>`;
 }
 
 export function renderTable({ command, state }) {
@@ -201,7 +229,7 @@ export function renderTableCell({ content, index, contentClasses, margin, comman
   const alignment = command.attributes.align ? command.attributes.align[index] : 'left';
   const widthPx = (state.docWidth / state.chars) * width;
   const widthStyle = `width: ${widthPx}px; max-width: ${widthPx}px; min-width: ${widthPx}px;`;
-  return `<td data-cols="${width}" class="${contentClasses} rpml-td" style="text-align: ${alignment}; ${widthStyle}">${content}</td>`;
+  return `<td data-cols="${width}" class="${contentClasses} rpml-td" style="text-align: ${alignment}; ${widthStyle}">${escape(content)}</td>`;
 }
 
 export function renderTableCellMargin({ contentClasses, margin, state }) {
@@ -211,15 +239,22 @@ export function renderTableCellMargin({ contentClasses, margin, state }) {
 }
 
 export function renderBarcode({ command, styles }) {
-  const blockClasses = buildBlockClasses({ command, styles });
+  const blockClasses = buildBlockClasses({ styles });
   return `<div class="${blockClasses} rpml-barcode"><img src="https://barcode.tec-it.com/barcode.ashx?data=${command.attributes.data}&code=${command.attributes.type}" width="100%"></div>`;
 }
 
 export function renderQRCode({ command, styles }) {
   // super rough implementation of sizing
   const size = parseInt(21 * command.attributes.size);
-  const blockClasses = buildBlockClasses({ command, styles });
+  const blockClasses = buildBlockClasses({ styles });
   return `<div class="${blockClasses} rpml-qrcode"><img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${command.attributes.data}"></div>`;
+}
+
+export function renderCut({ command }) {
+  if (command.value === 'none') {
+    return '';
+  }
+  return `<div class="rpml-cut-${command.value}"></div>`;
 }
 
 export function buildContentClasses({ styles }) {
@@ -248,10 +283,10 @@ export function buildContentClasses({ styles }) {
   return classes.join(' ');
 }
 
-export function buildBlockClasses({ command, styles }) {
+export function buildBlockClasses({ styles }) {
   const classes = ['rpml-block', `rpml-${styles.alignment}`];
 
-  if (styles.size && (command.name == 'line' || command.name == 'text')) {
+  if (styles.size && styles.size > 1) {
     classes.push(`rpml-size-${styles.size}`);
   }
 
@@ -260,15 +295,14 @@ export function buildBlockClasses({ command, styles }) {
 
 export function wrapDocument({ state, fontFamily, fontSize, lineHeight }) {
   const docStyles = `width: ${state.docWidth}px; margin: 0 auto;`;
-  const wordWrap = state.wordWrap ? 'word-wrap: break-word;' : '';
   const fontStyles = `font-family: ${fontFamily}; font-size: ${fontSize}; line-height: ${lineHeight};`;
   return `
     <html>
       <head>
-        <style>${css()}</style>
+        <style>${css}</style>
       </head>
-      <body>
-        <div class="rpml-receipt" style="${docStyles}${wordWrap}${fontStyles}">
+      <body class="rpml-body">
+        <div class="rpml-receipt" style="${docStyles}${fontStyles}">
           ${state.html}
         </div>
       </body>
@@ -276,136 +310,155 @@ export function wrapDocument({ state, fontFamily, fontSize, lineHeight }) {
   `;
 }
 
-export function css() {
-  return `
-    body {
-      background-color: transparent;
-      margin: 0;
-      padding: 0;
+function escape(text) {
+  return text.replace(/[&<>"']/g, function (match) {
+    switch (match) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case "'":
+        return '&#39;';
     }
-
-    .rpml-receipt {
-      padding: 1em;
-      background-color: white;
-      color: black;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      word-break: break-all;
-    }
-
-    .rpml-block {
-      min-height: 1.3em;
-      text-align: left;
-    }
-
-    .rpml-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 0;
-      padding: 0;
-    }
-
-    .rpml-tr {
-      border: none;
-      margin: 0;
-      padding: 0;
-    }
-
-    .rpml-td {
-      border: none;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-      vertical-align: top;
-    }
-
-    .rpml-img {
-      filter: grayscale(100%);
-    }
-
-    .rpml-small {
-      font-size: 80%;
-    }
-
-    .rpml-size-1 {
-      line-height: 100%;
-      font-size: 100%;
-    }
-
-    .rpml-size-2 {
-      line-height: 100%;
-      font-size: 200%;
-    }
-
-    .rpml-size-3 {
-      line-height: 100%;
-      font-size: 300%;
-    }
-
-    .rpml-size-4 {
-      line-height: 100%;
-      font-size: 400%;
-    }
-
-    .rpml-size-5 {
-      line-height: 100%;
-      font-size: 500%;
-    }
-
-    .rpml-size-6 {
-      line-height: 100%;
-      font-size: 600%;
-    }
-
-    .rpml-bold {
-      font-weight: bold;
-    }
-
-    .rpml-italic {
-      font-style: italic;
-    }
-
-    .rpml-underline {
-      text-decoration: underline;
-    }
-
-    .rpml-invert {
-      background-color: black;
-      color: white;
-    }
-
-    .rpml-center {
-      text-align: center;
-    }
-
-    .rpml-left {
-      text-align: left;
-    }
-
-    .rpml-right {
-      text-align: right;
-    }
-
-    .rpml-img-wrapper {
-      width: 100%;
-    }
-
-    .rpml-rule {
-      position:relative;
-    }
-
-    .rpml-rule .rpml-rule-solid {
-      border: none;
-      margin: 0;
-      padding: 0;
-      border-top: 1px solid black;
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-
-    .rpml-barcode, .rpml-qrcode {
-      width: 100%;
-    }
-  `;
+  });
 }
+
+export const css = `
+  .rpml-body {
+    background-color: transparent;
+    margin: 0;
+    padding: 0;
+  }
+
+  .rpml-receipt {
+    padding: 1em;
+    background-color: white;
+    color: black;
+  }
+
+  .rpml-block {
+    min-height: 1.3em;
+    text-align: left;
+    line-height: 100%;
+    font-size: 100%;
+  }
+
+  .rpml-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    padding: 0;
+  }
+
+  .rpml-tr {
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .rpml-td {
+    border: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    vertical-align: top;
+  }
+
+  .rpml-img {
+    filter: grayscale(100%);
+  }
+
+  .rpml-small {
+    font-size: 80%;
+  }
+
+  .rpml-size-2 {
+    line-height: 100%;
+    font-size: 200%;
+  }
+
+  .rpml-size-3 {
+    line-height: 100%;
+    font-size: 300%;
+  }
+
+  .rpml-size-4 {
+    line-height: 100%;
+    font-size: 400%;
+  }
+
+  .rpml-size-5 {
+    line-height: 100%;
+    font-size: 500%;
+  }
+
+  .rpml-size-6 {
+    line-height: 100%;
+    font-size: 600%;
+  }
+
+  .rpml-bold {
+    font-weight: bold;
+  }
+
+  .rpml-italic {
+    font-style: italic;
+  }
+
+  .rpml-underline {
+    text-decoration: underline;
+  }
+
+  .rpml-invert {
+    background-color: black;
+    color: white;
+  }
+
+  .rpml-center {
+    text-align: center;
+  }
+
+  .rpml-left {
+    text-align: left;
+  }
+
+  .rpml-right {
+    text-align: right;
+  }
+
+  .rpml-img-wrapper {
+    width: 100%;
+  }
+
+  .rpml-rule {
+    position: relative;
+  }
+
+  .rpml-rule .rpml-rule-solid {
+    border: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid black;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .rpml-cut-full,
+  .rpml-cut-partial {
+    border-top: 1px dashed #D00;
+  }
+
+  .rpml-cut-partial {
+    margin-left: auto;
+    width: 50%;
+  }
+
+  .rpml-barcode, .rpml-qrcode {
+    width: 100%;
+  }
+`;

@@ -3,21 +3,23 @@ import { parse } from '../src/parser.js';
 
 describe('Parser', () => {
   it('parses basic commands', () => {
-    const markup = '{document word-wrap=true}';
+    const markup = '{document}';
     const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
         name: 'document',
         attributes: {
-          wordWrap: true,
+          bottomMargin: 6,
+          cut: 'partial',
+          wordWrap: false,
         },
       },
     ]);
   });
 
   it('ignores comments', () => {
-    const markup = '{# this is a comment }\n{document word-wrap=true}';
+    const markup = '{# this is a comment }\n{document}';
     const output = parse(markup);
 
     expect(output.length).to.equal(1);
@@ -168,23 +170,6 @@ describe('Parser', () => {
     ]);
   });
 
-  // Document Tag
-  it('parses document tag with boolean attribute', () => {
-    const markup = `{document
-        word-wrap=true
-      }`;
-    const output = parse(markup);
-
-    expect(output).to.deep.equal([
-      {
-        name: 'document',
-        attributes: {
-          wordWrap: true,
-        },
-      },
-    ]);
-  });
-
   // Comment Handling
   it('ignores comments in the template', () => {
     const markup = `{# this is a comment }`;
@@ -225,11 +210,16 @@ describe('Parser', () => {
   });
 
   // Line Tag
-  it('parses line tag correctly', () => {
+  it('parses line tag without param', () => {
     const markup = `{line}`;
     const output = parse(markup);
+    expect(output).to.deep.equal([{ name: 'line', value: '' }]);
+  });
 
-    expect(output).to.deep.equal([{ name: 'line' }]);
+  it('parses line tag with param', () => {
+    const markup = `{line Some text}`;
+    const output = parse(markup);
+    expect(output).to.deep.equal([{ name: 'line', value: 'Some text' }]);
   });
 
   // Text Lines
@@ -238,6 +228,13 @@ describe('Parser', () => {
     const output = parse(markup);
 
     expect(output).to.deep.equal([{ name: 'line', value: 'LAYBY DOCKET' }]);
+  });
+
+  it('trims whitespace around text line', () => {
+    const markup = `  some text  `;
+    const output = parse(markup);
+
+    expect(output).to.deep.equal([{ name: 'line', value: 'some text' }]);
   });
 
   // Left Tag
@@ -379,14 +376,15 @@ describe('Parser', () => {
   });
 
   it('handles mixed case keywords correctly', () => {
-    const markup = '{DoCuMeNt WoRd-WrAp=true}';
+    const markup = '{RuLe LiNe=DaShEd}';
     const output = parse(markup);
 
     expect(output).to.deep.equal([
       {
-        name: 'document',
+        name: 'rule',
         attributes: {
-          wordWrap: true,
+          line: 'dashed',
+          style: 'single',
         },
       },
     ]);
@@ -443,9 +441,6 @@ Some text
 
   it('correctly parses the entire RPML markup', () => {
     const markup = `
-{document
-  word-wrap=true
-}
 {# header }
 {center}
 {image
@@ -576,12 +571,6 @@ Layby Terms & Conditions
 
     const expectedOutput = [
       {
-        name: 'document',
-        attributes: {
-          wordWrap: true,
-        },
-      },
-      {
         name: 'center',
       },
       {
@@ -594,6 +583,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'line',
@@ -601,6 +591,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'bold',
@@ -619,6 +610,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'line',
@@ -626,6 +618,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'line',
@@ -640,6 +633,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'table',
@@ -652,6 +646,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'bold',
@@ -743,6 +738,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'table',
@@ -776,6 +772,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'table',
@@ -795,6 +792,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'center',
@@ -810,6 +808,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'rule',
@@ -820,6 +819,7 @@ Layby Terms & Conditions
       },
       {
         name: 'line',
+        value: '',
       },
       {
         name: 'bold',

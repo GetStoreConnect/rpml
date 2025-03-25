@@ -1,7 +1,9 @@
 const schema = {
   document: {
     attributes: {
-      wordWrap: { type: 'boolean', default: false },
+      wordWrap: { type: 'boolean', default: false }, // DEPRECATED
+      bottomMargin: { type: 'number', default: 6 },
+      cut: { type: 'keyword', options: ['full', 'partial', 'none'], default: 'partial' },
     },
   },
   center: {},
@@ -20,7 +22,6 @@ const schema = {
   },
   left: {},
   right: {},
-  line: {},
   rule: {
     attributes: {
       width: { type: 'number' },
@@ -37,8 +38,11 @@ const schema = {
       width: { type: 'number', split: true },
     },
   },
+  line: {
+    param: { type: 'string', default: '' },
+  },
   text: {
-    param: { type: 'string' },
+    param: { type: 'string', default: '' },
   },
   bold: {
     toggle: true,
@@ -57,6 +61,12 @@ const schema = {
   },
   size: {
     param: { type: 'number', options: [1, 2, 3, 4, 5, 6], default: 1 },
+  },
+  newline: {
+    param: { type: 'number', default: 1 },
+  },
+  cut: {
+    param: { type: 'string', options: ['partial', 'full'], default: 'full' },
   },
   barcode: {
     attributes: {

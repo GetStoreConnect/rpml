@@ -1,15 +1,15 @@
 import { parse } from './parser.js';
-import { renderHtml } from './renderers/html.js';
+import { renderHtml } from './htmlRenderer.js';
+import { encodeReceipt } from './printerEncoder.js';
 
-function renderHtmlFromBrowser(markup, renderOptions = {}) {
+export function parseAndRenderHtml(markup, renderOptions = {}) {
   const commands = parse(markup);
-  const createCanvas = (width, height) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    return canvas;
-  };
-  return renderHtml({ commands, createCanvas, ...renderOptions });
+  return renderHtml({ commands, ...renderOptions });
 }
 
-export { parse, renderHtml, renderHtmlFromBrowser };
+export function parseAndEncodeReceipt(markup, encodeOptions = {}) {
+  const commands = parse(markup);
+  return encodeReceipt({ commands, ...encodeOptions });
+}
+
+export { parse, renderHtml, encodeReceipt };

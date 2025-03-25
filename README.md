@@ -24,22 +24,49 @@ Defines the start of a document with optional configuration attributes. This tag
 
 **Attributes:**
 
-*   `word-wrap`: Enables word wrapping. Accepts `true` or `false`. Default is `false`.
+*   `bottom-margin`: The number of blank lines before the final cut. Default is `6`.
+*   `cut`: The type of final cut. Can be `full`, `partial`, or `none`. Default is `partial`.
+*   `word-wrap`: DEPRECATED: this option no longer has an effect.
 
 **Example:**
 
-    {document word-wrap=true}
+    {document bottom-margin=5 cut=full}
+
 
 ### line
 
-Inserts a blank line.
+Inserts a line of text, leave off the parameter to do a blank line.
+
+**Parameter:**
+
+*   A string of text to be displayed. (Optional)
 
 **Examples:**
 ```rpml
-This has a blank line after it
+{line This is the first line}
+This is the second line
 {line}
-This has a blank line before it
+This is the forth line, the third line is blank.
 ```
+
+**Description:**
+
+*   Lines with only text are a shorthand for the `{line}` tag. For example, a line with `Some text` is equivilant to `{line Some text}`
+*   The `{line Some text}` tag is a shorthand for `{text Some text}` followed by `{newline}`
+*   If the string contains braces, they should be escaped (e.g. `\{`).
+*   Whitespace is trimmed but can be included by wrapping the parameter in quotes: `{line " hello  "}`
+
+### newline
+
+Adds a number of new lines.
+
+**Examples:**
+```rpml
+This has three blank lines after it
+{newline 3}
+This has three blank lines before it
+```
+
 
 ### bold, italic, underline, invert, small
 
@@ -70,7 +97,7 @@ These align the subsequent content to the left, center, or right. The alignment 
 
 ### text
 
-The `text` tag is used to insert a line of text into the document. The content of the text is provided as a parameter to the tag.
+The `text` tag is used to insert a string of text into the document. The content of the text is provided as a parameter to the tag.
 
 **Parameter:**
 
@@ -82,8 +109,10 @@ The `text` tag is used to insert a line of text into the document. The content o
 
 **Description:**
 
-*   The `text` tag directly inserts the provided string into the document as a line of text.
+*   The `text` tag directly inserts the provided string into the document as inline text.
+*   Any text following a `text` tag will appear on the same line.
 *   If the string contains braces, they should be escaped (e.g. `\{`).
+*   Whitespace is trimmed but can be included by wrapping the parameter in quotes: `{text " hello  "}`
 
 ### size
 
@@ -229,6 +258,21 @@ Creates a horizontal rule with optional style and width.
 
     {rule width=2 line='dashed' style='single'}
 
+### cut
+
+Cuts the receipt tape.
+
+**Options**
+* `full`: Performs a full cut. (Default)
+* `partial`: Performs  a full cut.
+
+**Example:**
+
+    Full cut:
+    {cut}
+    Partial cut:
+    {cut partial}
+
 Comments
 --------
 
@@ -252,7 +296,7 @@ Complete Example
 
 Below is a complete example of a RPML document:
 
-    {document word-wrap=true}
+    {document}
     {# header }
     {center}
     {image
