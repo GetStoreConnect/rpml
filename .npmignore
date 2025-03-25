@@ -1,0 +1,12 @@
+.DS_Store
+.git
+.github
+.gitignore
+.npmignore
+.prettierignore
+.prettierrc.json
+.projections.json
+.vscode
+/build.js
+/node_modules
+/test

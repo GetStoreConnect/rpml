@@ -1,4 +1,5 @@
+.DS_Store
+.projections.json
+.vscode
 /dist
 /node_modules
-.DS_Store
-.vscode
