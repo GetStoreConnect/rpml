@@ -6,7 +6,7 @@ Receipt Printer Markup Language (RPML) is a lightweight markup language designed
 
 See the language reference for details.
 
-* [Language Reference](docs/language.md)
+* [Language Reference](https://github.com/GetStoreConnect/rpml/blob/main/docs/language.md)
 
 
 ## Usage
