@@ -185,6 +185,10 @@ export function renderImage({ command, styles }) {
 }
 
 export function renderTable({ command, state }) {
+  if (!command.attributes.rows) {
+    return '';
+  }
+
   let html = '<table class="rpml-table">';
 
   const contentClasses = buildContentClasses({ styles: state.styles });

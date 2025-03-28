@@ -271,6 +271,25 @@ This should still render`;
     expect(tableCommand).to.include('3x2'); // 3 columns, 2 rows
   });
 
+  it('skips table without rows', async () => {
+    const markup = `
+{table
+  cols=3
+  margin=1
+  align=[left,center,right]
+  width=[10,10,*]
+}`;
+
+    const encoder = await encodeReceipt({
+      commands: parse(markup),
+      encoder: new MockPrinterEncoder(),
+    });
+
+    const commands = encoder.commands;
+    const tableCommand = commands.find((cmd) => cmd.startsWith('table:'));
+    expect(tableCommand).to.not.exist;
+  });
+
   it('renders rules with different styles', async () => {
     const markup = `
 {rule line=solid width=32}

@@ -300,6 +300,21 @@ describe('HTML Renderer', () => {
       expect(output).to.include('text-align: right');
       expect(output).to.include('&nbsp;'); // margin cell
     });
+
+    it('skips table without rows', () => {
+      const command = {
+        name: 'table',
+        attributes: {
+          cols: 2,
+          margin: 1,
+          align: ['left', 'right'],
+        },
+      };
+      const state = buildState();
+
+      const output = renderTable({ command, state });
+      expect(output).to.eq('');
+    });
   });
 
   describe('renderTableCell and renderTableCellMargin', () => {

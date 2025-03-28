@@ -100,6 +100,9 @@ export function encodeCommand({ command, encoder, dots, images }) {
 
     case 'table':
       encoder = resetSize({ encoder });
+      if (!command.attributes.rows) {
+        return encoder;
+      }
       const table = buildTable({ command, width: encoder.columns });
       return encoder.table(table.columns, table.rows);
 
