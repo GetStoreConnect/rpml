@@ -278,6 +278,24 @@ describe('Parser', () => {
     ]);
   });
 
+  it('parses table tag with no rows', () => {
+    const markup = `{table
+        cols=2
+        margin=1
+      }`;
+    const output = parse(markup);
+
+    expect(output).to.deep.equal([
+      {
+        name: 'table',
+        attributes: {
+          cols: 2,
+          margin: 1,
+        },
+      },
+    ]);
+  });
+
   // Rule Tag
   it('parses rule tag correctly', () => {
     const markup = `{rule}`;
