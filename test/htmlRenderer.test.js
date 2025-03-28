@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { createCanvas } from 'canvas';
 import {
   applyCommand,
   applyLineCommand,
@@ -450,11 +449,21 @@ describe('HTML Renderer', () => {
 
   describe('renderHtml', () => {
     it('renders a simple document', () => {
+      // Mock canvas context with predetermined width measurement
+      const mockContext = {
+        // Each character is 10px wide in our mock
+        measureText: (text) => ({ width: text.length * 10 }),
+      };
+
+      const mockCreateCanvas = () => ({
+        getContext: () => mockContext,
+      });
+
       const commands = [
         { name: 'document', attributes: { bottomMargin: 3, cut: 'full' } },
         { name: 'text', value: 'Hello' },
       ];
-      const output = renderHtml({ commands, createCanvas });
+      const output = renderHtml({ commands, createCanvas: mockCreateCanvas });
 
       const expectedOutput = `
     <html>
@@ -462,7 +471,7 @@ describe('HTML Renderer', () => {
         <style>${css}</style>
       </head>
       <body class="rpml-body">
-        <div class="rpml-receipt" style="width: 269.71875px; margin: 0 auto;font-family: monospace; font-size: 14px; line-height: 1.3em;">
+        <div class="rpml-receipt" style="width: 320px; margin: 0 auto;font-family: monospace; font-size: 14px; line-height: 1.3em;">
           ${renderTextBlock({ text: 'Hello', state: buildState() })}
 <br><br>${renderCut({ command: { name: 'cut', value: 'full' } })}
 
